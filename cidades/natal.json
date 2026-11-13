@@ -119,13 +119,365 @@
    "vigente_desde": "2022-03-08",
    "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
    "nota": "recuos no Quadro 2 do Anexo II, limitados a 7,00 m; subsolo com frente mínima de 3,00 m (art. 60 §1º, I)"
+  },
+  {
+   "zona": "Bacia AN",
+   "parametro": "ca_max",
+   "valor": 2.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento AN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia BN",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento BN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia CN",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento CN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia DN",
+   "parametro": "ca_max",
+   "valor": 3.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento DN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia EN",
+   "parametro": "ca_max",
+   "valor": 2.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento EN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia FN",
+   "parametro": "ca_max",
+   "valor": 5.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento FN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia GN",
+   "parametro": "ca_max",
+   "valor": 3.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento GN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia HN",
+   "parametro": "ca_max",
+   "valor": 1.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento HN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia IN",
+   "parametro": "ca_max",
+   "valor": 2.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento IN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia JN",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento JN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia KN",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento KN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia LN",
+   "parametro": "ca_max",
+   "valor": 5.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento LN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia MN",
+   "parametro": "ca_max",
+   "valor": 1.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento MN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia ON",
+   "parametro": "ca_max",
+   "valor": 5.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento ON (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia QN",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.1 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento QN (Zona Norte). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia AS",
+   "parametro": "ca_max",
+   "valor": 4.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento AS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia BS",
+   "parametro": "ca_max",
+   "valor": 2.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento BS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia CS",
+   "parametro": "ca_max",
+   "valor": 5.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento CS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia DS",
+   "parametro": "ca_max",
+   "valor": 3.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento DS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia ES",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento ES (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia FS",
+   "parametro": "ca_max",
+   "valor": 3.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento FS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia GS",
+   "parametro": "ca_max",
+   "valor": 1.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento GS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia HS",
+   "parametro": "ca_max",
+   "valor": 2.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento HS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia IS",
+   "parametro": "ca_max",
+   "valor": 5.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento IS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia JS",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento JS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia KS",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento KS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia LS",
+   "parametro": "ca_max",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento LS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia MS",
+   "parametro": "ca_max",
+   "valor": 2.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento MS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia NS",
+   "parametro": "ca_max",
+   "valor": 3.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento NS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
+  },
+  {
+   "zona": "Bacia OS",
+   "parametro": "ca_max",
+   "valor": 1.5,
+   "norma": "LCP_208_2022",
+   "dispositivo": "Anexo II, Quadro 1.2 (linha CA) e Mapa 2/2A do Anexo III",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf",
+   "nota": "CA máximo da bacia de esgotamento OS (Zona Sul). Lote lindeiro a eixo estruturante: +50% (quadra contígua +25%); quadra lindeira a estação ferroviária: +50%; teto 5,0 (art. 15 §§4º-6º)."
   }
  ],
  "alteracoes": [],
  "pendencias": [
-  "Anexo II (Quadros 1.1 a 1.4: CA máximo por bairro; Quadro 2: recuos) e Anexo III (Mapas 2/2A): a SEMURB publica a LC 208 com anexos em https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/Plano_Diretor_LC_208_2022.pdf (DOM) e a versão compilada pós Código de Obras em https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf. O portal natal.rn.gov.br devolve 403 para robôs e o download pelo navegador travou (13/11/2026). Baixar à mão para fontes_locais/natal/ e adicionar em 'quadros' com leitor 'modelo' (ou escrever leitor por regra depois de ver o leiaute).",
-  "Alterações posteriores encontradas, ainda não lidas: LC 258/2024 (Código de Obras; existe compilado da LC 208 pós Código de Obras), LC 261/2025 (unifica as ZPAs; revoga a ZPA-7 da LC 208) e Lei 7.801 (AEITPs). Confirmar números, datas e vigência no SAPL/iaJus.",
-  "Valores 'Município (geral)' foram lidos do texto da lei por web fetch (arts. 11, 55, 58, 59, 60) e estão como conferido=0.",
-  "Sem conector de lote/zona para Natal (não há serviço aberto)."
+  "Anexo II lido do texto do compilado pós Código de Obras (fontes_locais/natal/PLANODIRETOR_POSCODIGODEOBRAS.pdf.txt). Entrou o CA máximo das 30 bacias de esgotamento (linhas 'CA' dos Quadros 1.1/1.2, conferidas contra os rótulos dos Mapas 2/2A: 28 batem, 2 ilegíveis no mapa).",
+  "Quadros 1.1/1.2 (qual bacia cobre cada bairro) e 1.3/1.4 (CA por eixo estruturante e bacia): no texto extraído as células perderam a posição; precisa do PDF original para ler com coordenadas (pdfplumber).",
+  "Quadro 2 (recuos em função de H) é imagem no PDF; só a legenda saiu no texto. Transcrever à mão ou pelo --modelo com a imagem.",
+  "Sem consulta lote -> bacia: os Mapas 2/2A não têm serviço aberto; a bacia do lote precisa ser informada.",
+  "Confirmar números, datas e vigência da LC 261/2025 (ZPAs) e da Lei 7.801 (AEITPs).",
+  "Valores 'Município (geral)' foram lidos do texto da lei por web fetch (arts. 11, 55, 58, 59, 60) e estão como conferido=0."
+ ],
+ "regras": [
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 15 §§4º-6º e 8º",
+   "texto": "CA da bacia +50% em lotes lindeiros a eixos estruturantes (Mapa 24, até uma quadra do eixo), +25% na quadra contígua e +50% nas quadras lindeiras a estações ferroviárias; teto 5,0; os acréscimos de eixo exigem bicicletário para 15% das unidades."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 15 §2º",
+   "texto": "Lote em bacia de CA menor pode usar o CA mais alto de outra bacia do mesmo bairro, se aprovar com a concessionária solução de esgoto para as bacias adjacentes."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 13 §§3º-5º",
+   "texto": "CA máximo do lote vem da bacia de esgotamento (Mapas 2/2A); acima do CA básico 1,0 é outorga onerosa até o máximo; lotes em vias divisórias de zonas/bairros seguem a de maior CA (exceto ZPAs e áreas especiais)."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LCP_208_2022",
+   "dispositivo": "arts. 56 e 57",
+   "texto": "Habitação multifamiliar ou de uso misto em AERU (Ribeira e Cidade Alta) e nos eixos estruturantes: +20% de CA para uso misto e interesse social, até 5,0."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LCP_258_2024",
+   "dispositivo": "art. 14 da LC 208 (redação da LC 258/2024)",
+   "texto": "Área computável: residencial = soma das áreas privativas, sem garagens e áreas técnicas até 2,5 m²; não residencial = área total menos pergolados, guaritas, garagens, lajes técnicas até 2,5 m², casa de máquinas, subestação e casa de lixo; uso misto calcula cada parte separada."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 60",
+   "texto": "Recuos pelo Quadro 2 do Anexo II (função da altura H entre a laje do 2º pavimento e a do último pavimento útil), limitados a 7,00 m; recuo médio em lote esconso não pode ficar abaixo de 1,50 + h/20 na divisa."
+  }
  ]
 }
