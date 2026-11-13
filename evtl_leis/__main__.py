@@ -17,6 +17,12 @@ import argparse
 import json
 import sys
 
+try:
+    import truststore
+    truststore.inject_into_ssl()
+except ImportError:
+    pass
+
 from . import base, consolidar, diagnostico, exportar, fontes, vigia
 
 ROTULOS = {"ca_min": "CA mínimo", "ca_bas": "CA básico", "ca_max": "CA máximo",
