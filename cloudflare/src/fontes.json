@@ -8,13 +8,20 @@
     "Manaus: LCP_2_2014": "https://www.manaus.am.gov.br/implurb/wp-content/uploads/sites/13/2023/08/LEGISLACAO-URBANISTICA-MUNICIPAL-PLANO-DIRETOR-E-AMBIENTAL-DE-MANAUS-E-SUAS-LEIS-COMPLEMENTARES-Versao-01.pdf",
     "Manaus: LEI_1838_2014": "https://sapl.cmm.am.gov.br/norma/74",
     "Manaus: LEI_2402_2019": "https://sapl.cmm.am.gov.br/norma/47",
+    "Manaus: Anexo I - parâmetros por setor (ArcGIS IMPLURB, camada SETORES)": "https://pmm.manaus.am.gov.br/arcgis/rest/services/IMPLURB/IMPLURB_PATRIMONIO_HISTORICO_SRGS/MapServer/5/query?where=1%3D1&outFields=*&returnGeometry=false&f=json",
+    "Manaus: Anexo I - parâmetros por subsetor (ArcGIS IMPLURB, camada SUBSETORES)": "https://pmm.manaus.am.gov.br/arcgis/rest/services/IMPLURB/IMPLURB_PATRIMONIO_HISTORICO_SRGS/MapServer/4/query?where=1%3D1&outFields=*&returnGeometry=false&f=json",
     "Natal: LCP_208_2022": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+    "Natal: LCP_258_2024": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/leis/4-LeiComplementar258_CodigodeObras27122024.pdf",
+    "Natal: LCP_261_2025": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/drenagem/1%20-%20LC%20261-2025%20-%20Unifica%C3%A7%C3%A3o%20das%20Zonas%20de%20Prote%C3%A7%C3%A3o%20Ambiental%20de%20Natal%20-%20ZPAs.pdf",
+    "Natal: LEI_7801": "https://tribunadonorte.com.br/natal/lei-regula-uso-e-ocupacao-do-solo-em-areas-de-interesse-turistico-e-paisagistico-em-natal/",
     "São Paulo: LEI_16050_2014": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16050-de-31-de-julho-de-2014",
     "São Paulo: LEI_17975_2023": "https://legislacao.prefeitura.sp.gov.br/leis/lei-17975-de-8-de-julho-de-2023",
     "São Paulo: LEI_16402_2016": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16402-de-22-de-marco-de-2016",
     "São Paulo: LEI_18081_2024": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2023",
     "São Paulo: LEI_18177_2024": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18177-de-25-de-julho-de-2024",
-    "São Paulo: Quadro 3 - Parâmetros de ocupação": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/005-QUADRO_3_FINAL.pdf"
+    "São Paulo: Quadro 3 - Parâmetros de ocupação": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/005-QUADRO_3_FINAL.pdf",
+    "São Paulo: Quadro 3A - Quota Ambiental e permeabilidade": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/006-QUADRO_3A_FINAL.pdf",
+    "São Paulo: Quadro 4 - Usos permitidos por zona": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/009-QUADRO_4_FINAL.pdf"
   },
   "cidades": {
     "manaus": {

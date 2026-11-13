@@ -1,0 +1,9 @@
+                    PA 1      0,15     0,25    0,45    0,60    0,70    0,80    1,00    0,5     0,5                  
+                    PA 10     0,20     0,25    0,23    0,30    0,37    0,40    0,42    0,6     0,4                  
+                   PA 13 (c)  NA       NA      NA      NA       NA      NA      NA     NA      NA                   
+     (a) Nos lotes inseridos em ZEPAM, ZPDSr, ZPDS, ZCOR, ZPR e ZER deverão ser aplicadas as seguintes taxas de permeabilidade mínima: 0,90, 0,70, 0,50, 0,30, 0,30 e 0,30, respectivamente,
+     independente do tamanho do lote;                                                                               
+     (b) Quando a somatória da taxa de permeabilidade do Quadro 3A com a taxa de ocupação do Quadro 3 for superior à 1,00 (um inteiro), a taxa de permeabilidade deverá ser respeitada e a
+     taxa de ocupação reduzida proporcionalmente;                                                                   
+     (c) O PA 13 corresponde às Macroáreas de Contenção Urbana e Uso Sustentável e de Preservação dos Ecossistemas Naturais, nas quais não se aplicam as exigências da Quota Ambiental.
+                                                                                                                    

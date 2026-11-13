@@ -1,51 +1,296 @@
 {
-  "cidade": "São Paulo", "uf": "SP", "ibge": "3550308",
-  "normas": [
-    {"id": "LEI_16050_2014", "tipo": "LEI", "numero": "16050", "ano": 2014, "data": "2014-07-31", "papel": "plano_diretor",
-     "ementa": "Plano Diretor Estratégico", "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16050-de-31-de-julho-de-2014"},
-    {"id": "LEI_17975_2023", "tipo": "LEI", "numero": "17975", "ano": 2023, "data": "2023-07-08", "papel": "alteradora",
-     "ementa": "Revisão intermediária do Plano Diretor Estratégico", "vigencia": "vigente (iaJus, 12/11/2026)",
-     "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-17975-de-8-de-julho-de-2023"},
-    {"id": "LEI_16402_2016", "tipo": "LEI", "numero": "16402", "ano": 2016, "data": "2016-03-22", "papel": "zoneamento",
-     "ementa": "Parcelamento, uso e ocupação do solo (LPUOS)", "vigencia": "não está no acervo do iaJus; vigente com alterações",
-     "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16402-de-22-de-marco-de-2016"},
-    {"id": "LEI_18081_2024", "tipo": "LEI", "numero": "18081", "ano": 2024, "data": "2024-01-19", "papel": "alteradora",
-     "ementa": "Revisão parcial da Lei 16.402/2016 (compatibilização com a Lei 17.975/2023)", "vigencia": "vigente (iaJus, 12/11/2026)",
-     "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2023"},
-    {"id": "LEI_18177_2024", "tipo": "LEI", "numero": "18177", "ano": 2024, "data": "2024-07-25", "papel": "alteradora",
-     "ementa": "Compatibiliza a Lei 18.081/2024, metodologia e legendas do Mapa I",
-     "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18177-de-25-de-julho-de-2024"}
-  ],
-  "quadros": [
-    {"rotulo": "Quadro 3 - Parâmetros de ocupação", "norma": "LEI_16402_2016", "vigente_desde": "2016-03-23",
-     "leitor": "sp_quadro3", "conferido": false,
-     "url": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/005-QUADRO_3_FINAL.pdf"}
-  ],
-  "manuais": [],
-  "alteracoes": [],
-  "regras": [
-    {"zonas": ["todas"], "norma": "LEI_18081_2024", "dispositivo": "art. 38 (art. 68 da 16.402), redação da Lei 18.177/2024 art. 5º",
-     "texto": "Gabarito de altura máxima contado a partir de 6 m do perfil natural do terreno (antes: a partir do primeiro pavimento aflorado)."},
-    {"zonas": ["ZEU", "ZEUP", "ZEM", "ZEMP"], "norma": "LEI_18081_2024", "dispositivo": "art. 35 (art. 64 da 16.402)",
-     "texto": "Na faixa de 20 m junto a vilas e ruas sem saída: gabarito máximo de 28 m nessas zonas e 15 m nas demais, quando o da zona não for mais restritivo."},
-    {"zonas": ["todas"], "norma": "LEI_18081_2024", "dispositivo": "art. 33 (art. 61 da 16.402) §6º",
-     "texto": "Taxa de ocupação calculada considerando a projeção do subsolo aflorado."},
-    {"zonas": ["todas"], "norma": "LEI_18081_2024", "dispositivo": "art. 26 (art. 42-C da 16.402)",
-     "texto": "Lote acima da área máxima da zona com edificação existente: nova taxa de ocupação fixada entre 50% e 70%."},
-    {"zonas": ["ZEU", "ZEUa", "ZEUP", "ZEUPa", "ZEM", "ZEMP"], "norma": "LEI_18081_2024", "dispositivo": "art. 37 (art. 67 da 16.402)",
-     "texto": "Passeio de 5 m; recuo de frente dispensado quando o passeio já tem 5 m ou há doação de área."},
-    {"zonas": ["todas"], "norma": "LEI_18081_2024", "dispositivo": "art. 39 (art. 69 da 16.402)",
-     "texto": "Sem recuo mínimo de frente quando ao menos 50% da face de quadra está construída no alinhamento."},
-    {"zonas": ["ZDE-2", "ZPI-1", "ZPI-2"], "norma": "LEI_18081_2024", "dispositivo": "art. 36 (art. 66 da 16.402)",
-     "texto": "Dispensa de recuos laterais e de fundo quando inviabilizariam a taxa de ocupação."},
-    {"zonas": ["todas"], "norma": "LEI_18177_2024", "dispositivo": "art. 8º",
-     "texto": "Novo Mapa 1 (perímetros das zonas) substitui o da Lei 18.081; vários lotes mudaram de zona (ex.: ZM->ZEU, ZC->ZEU, ZDE->ZEM, ZC->ZEIS-5). A zona do lote deve vir do mapa de 2024."}
-  ],
-  "pendencias": [
-    "Quadro 3 vem do PDF de 2016. Lidos os arts. 1-41 da Lei 18.081/2024 e toda a 18.177/2024: nenhum muda valores do Quadro 3 (mudam regras de gabarito, recuo, TO e o mapa de zonas, ver 'regras'). Falta ler a 18.081 depois do art. 41 (página oficial corta no art. 71 §7º) para descartar de vez.",
-    "Lei 18.209 citada nos laudos da Porto Seguro: não encontrada no site de legislação de SP (404). Confirmar número e assunto com o laudo/Danilo.",
-    "Permeabilidade: depende do Perímetro de Qualificação Ambiental (Quadro 3A + Mapa 3), não da zona. Falta o leitor do Quadro 3A e o cruzamento lote -> PA.",
-    "Zona do lote: feito (python -m evtl_leis zona, camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada.",
-    "Quadro 4 (usos permitidos) e sobreposições (ZEPEC, Operações Urbanas, tombamento) ainda não extraídos."
-  ]
+ "cidade": "São Paulo",
+ "uf": "SP",
+ "ibge": "3550308",
+ "normas": [
+  {
+   "id": "LEI_16050_2014",
+   "tipo": "LEI",
+   "numero": "16050",
+   "ano": 2014,
+   "data": "2014-07-31",
+   "papel": "plano_diretor",
+   "ementa": "Plano Diretor Estratégico",
+   "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16050-de-31-de-julho-de-2014"
+  },
+  {
+   "id": "LEI_17975_2023",
+   "tipo": "LEI",
+   "numero": "17975",
+   "ano": 2023,
+   "data": "2023-07-08",
+   "papel": "alteradora",
+   "ementa": "Revisão intermediária do Plano Diretor Estratégico",
+   "vigencia": "vigente (iaJus, 12/11/2026)",
+   "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-17975-de-8-de-julho-de-2023"
+  },
+  {
+   "id": "LEI_16402_2016",
+   "tipo": "LEI",
+   "numero": "16402",
+   "ano": 2016,
+   "data": "2016-03-22",
+   "papel": "zoneamento",
+   "ementa": "Parcelamento, uso e ocupação do solo (LPUOS)",
+   "vigencia": "não está no acervo do iaJus; vigente com alterações",
+   "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16402-de-22-de-marco-de-2016"
+  },
+  {
+   "id": "LEI_18081_2024",
+   "tipo": "LEI",
+   "numero": "18081",
+   "ano": 2024,
+   "data": "2024-01-19",
+   "papel": "alteradora",
+   "ementa": "Revisão parcial da Lei 16.402/2016 (compatibilização com a Lei 17.975/2023)",
+   "vigencia": "vigente (iaJus, 12/11/2026)",
+   "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2023"
+  },
+  {
+   "id": "LEI_18177_2024",
+   "tipo": "LEI",
+   "numero": "18177",
+   "ano": 2024,
+   "data": "2024-07-25",
+   "papel": "alteradora",
+   "ementa": "Compatibiliza a Lei 18.081/2024, metodologia e legendas do Mapa I",
+   "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18177-de-25-de-julho-de-2024"
+  }
+ ],
+ "quadros": [
+  {
+   "rotulo": "Quadro 3 - Parâmetros de ocupação",
+   "norma": "LEI_16402_2016",
+   "vigente_desde": "2016-03-23",
+   "leitor": "sp_quadro3",
+   "conferido": false,
+   "url": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/005-QUADRO_3_FINAL.pdf"
+  },
+  {
+   "rotulo": "Quadro 3A - Quota Ambiental e permeabilidade",
+   "norma": "LEI_16402_2016",
+   "vigente_desde": "2016-03-23",
+   "leitor": "sp_quadro3a",
+   "conferido": false,
+   "url": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/006-QUADRO_3A_FINAL.pdf"
+  },
+  {
+   "rotulo": "Quadro 4 - Usos permitidos por zona",
+   "norma": "LEI_16402_2016",
+   "vigente_desde": "2016-03-23",
+   "leitor": "sp_quadro4",
+   "conferido": false,
+   "url": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/009-QUADRO_4_FINAL.pdf"
+  }
+ ],
+ "manuais": [],
+ "alteracoes": [
+  {
+   "zona": "ZPI-2",
+   "parametro": "to_acima_500",
+   "valor": 0.5,
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 72, I (altera o Quadro 3)",
+   "fonte": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2024",
+   "vigente_desde": "2024-01-19",
+   "nota": "Taxa de ocupação de ZPI-2 para lotes ≥ 500 m² passa a 0,5."
+  },
+  {
+   "zona": "ZPI-1",
+   "parametro": "uso:nR3-2",
+   "valor": 1.0,
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 73, I (altera o Quadro 4)",
+   "fonte": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2024",
+   "vigente_desde": "2024-01-19",
+   "nota": null
+  },
+  {
+   "zonas": [
+    "AC-1",
+    "AC-2"
+   ],
+   "parametro": "uso:nR1-3",
+   "valor": 1.0,
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 73, II (altera o Quadro 4)",
+   "fonte": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2024",
+   "vigente_desde": "2024-01-19",
+   "nota": null
+  },
+  {
+   "zonas": [
+    "ZCOR-2",
+    "ZCOR-3",
+    "ZPR"
+   ],
+   "parametro": "uso:nR2-6",
+   "valor": 1.0,
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 73, III (altera o Quadro 4)",
+   "fonte": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2024",
+   "vigente_desde": "2024-01-19",
+   "nota": "Exceto atividades de educação superior ou profissional."
+  }
+ ],
+ "regras": [
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 38 (art. 68 da 16.402), redação da Lei 18.177/2024 art. 5º",
+   "texto": "Gabarito de altura máxima contado a partir de 6 m do perfil natural do terreno (antes: a partir do primeiro pavimento aflorado)."
+  },
+  {
+   "zonas": [
+    "ZEU",
+    "ZEUP",
+    "ZEM",
+    "ZEMP"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 35 (art. 64 da 16.402)",
+   "texto": "Na faixa de 20 m junto a vilas e ruas sem saída: gabarito máximo de 28 m nessas zonas e 15 m nas demais, quando o da zona não for mais restritivo."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 33 (art. 61 da 16.402) §6º",
+   "texto": "Taxa de ocupação calculada considerando a projeção do subsolo aflorado."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 26 (art. 42-C da 16.402)",
+   "texto": "Lote acima da área máxima da zona com edificação existente: nova taxa de ocupação fixada entre 50% e 70%."
+  },
+  {
+   "zonas": [
+    "ZEU",
+    "ZEUa",
+    "ZEUP",
+    "ZEUPa",
+    "ZEM",
+    "ZEMP"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 37 (art. 67 da 16.402)",
+   "texto": "Passeio de 5 m; recuo de frente dispensado quando o passeio já tem 5 m ou há doação de área."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 39 (art. 69 da 16.402)",
+   "texto": "Sem recuo mínimo de frente quando ao menos 50% da face de quadra está construída no alinhamento."
+  },
+  {
+   "zonas": [
+    "ZDE-2",
+    "ZPI-1",
+    "ZPI-2"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 36 (art. 66 da 16.402)",
+   "texto": "Dispensa de recuos laterais e de fundo quando inviabilizariam a taxa de ocupação."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18177_2024",
+   "dispositivo": "art. 8º",
+   "texto": "Novo Mapa 1 (perímetros das zonas) substitui o da Lei 18.081; vários lotes mudaram de zona (ex.: ZM->ZEU, ZC->ZEU, ZDE->ZEM, ZC->ZEIS-5). A zona do lote deve vir do mapa de 2024."
+  },
+  {
+   "zonas": [
+    "ZCOR-3"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 52 (art. 91, V da 16.402)",
+   "texto": "Lotes em ZCOR-3 com frente para a R. Eusébio Matoso ou a Av. Rebouças: CA máximo pode ser majorado em até 50% do Quadro 3."
+  },
+  {
+   "zonas": [
+    "ZCOR-2",
+    "ZCOR-3",
+    "ZCORa"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 72, II (nota n do Quadro 3)",
+   "texto": "Lotes que usarem a majoração do art. 91 devem ter recuo mínimo de fundo de 5 m."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 72, II (nota o do Quadro 3)",
+   "texto": "Gabarito pode ser superado para equipamentos esportivos que comprovadamente precisem de altura maior."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 62 (art. 114 da 16.402)",
+   "texto": "Ensino, hospitais, ensino e pesquisa em saúde e complexos de saúde (onde o uso é permitido) e hotéis em ZEU, ZEUP ou ZC: CA máximo majorado em 50% sobre o Quadro 3."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 64 (art. 117 da 16.402)",
+   "texto": "Hospitais públicos/conveniados/de interesse público e complexos de saúde ficam dispensados do gabarito máximo."
+  },
+  {
+   "zonas": [
+    "ZCOR-1",
+    "ZCOR-2"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 53 (art. 92, §4º da 16.402)",
+   "texto": "Em ZCOR-1/ZCOR-2 dentro ou lindeiras a ZEPEC/AUE nas Subprefeituras Sé, Lapa e Pinheiros: proibidos nR1-2, nR1-13 e atividades como buffet, salão de festas, auditórios, cinemas e teatros."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 44 (art. 76, §3º da 16.402)",
+   "texto": "Imóveis na AIU do Setor Central com TO existente e regular acima de 0,7 ficam dispensados da Quota Ambiental."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 66 (art. 134 da 16.402)",
+   "texto": "Dimensões mínimas de lote do Quadro 2A valem para novos parcelamentos; não impedem remembramento."
+  },
+  {
+   "zonas": [
+    "todas"
+   ],
+   "norma": "LEI_18081_2024",
+   "dispositivo": "art. 85",
+   "texto": "Quadro 3B (pontuação da Quota Ambiental) substituído pelo Anexo III da Lei 18.081 (o texto do art. 85 chama esse anexo de 'Quadro 3', mas o arquivo publicado é o Quadro 3B)."
+  }
+ ],
+ "pendencias": [
+  "Lei 18.081/2024 lida inteira (arts. 1-97, pela URL .../lei-18081-de-19-de-janeiro-de-2023, que traz o texto completo). Do art. 42 em diante, só o art. 72 muda valor do Quadro 3 (TO de ZPI-2 > 500 m² = 0,5) e o art. 73 muda o Quadro 4 (ver 'alteracoes'); o resto entrou como regras.",
+  "Quadro 3: linhas AVP-2, AC-1 e AC-2 vêm com texto girado no PDF e não são lidas; 34 zonas lidas.",
+  "Lei 18.209 citada nos laudos da Porto Seguro: o GeoSampa tem a camada 'pde_macroarea_lei_18209', então a lei existe e trata de macroáreas do PDE. Confirmar ementa e se mexe em parâmetros (site de legislação deu 404).",
+  "Permeabilidade por PA (Quadro 3A) já entra; falta o cruzamento lote -> Perímetro de Qualificação Ambiental (Mapa 3). Não achei a camada do Mapa 3 no WFS do GeoSampa.",
+  "Quadro 4 original de 2016 + art. 73 da 18.081. Conferir se a Lei 18.177/2024 alterou o Quadro 4. Notas do Quadro 4 entram só pela letra quando o texto da nota não é achado.",
+  "Sobreposições (ZEPEC, Operações Urbanas, tombamento) ainda não extraídas.",
+  "Zona do lote: feito (python -m evtl_leis zona, camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada."
+ ]
 }

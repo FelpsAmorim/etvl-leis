@@ -1,39 +1,131 @@
 {
-  "cidade": "Natal", "uf": "RN", "ibge": "2408102",
-  "normas": [
-    {"id": "LCP_208_2022", "tipo": "LCP", "numero": "208", "ano": 2022, "data": "2022-03-07", "papel": "plano_diretor",
-     "ementa": "Dispõe sobre o Plano Diretor de Natal", "vigencia": "vigente (iaJus, 12/11/2026)",
-     "link": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf"}
-  ],
-  "quadros": [],
-  "manuais": [
-    {"zona": "Município (geral)", "parametro": "ca_bas", "valor": 1.0, "norma": "LCP_208_2022", "dispositivo": "art. 11 §2º",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "CA máximo por bairro/bacia de esgotamento nos Quadros 1.1 a 1.4 do Anexo II e Mapas 2/2A do Anexo III; teto 5,0 (art. 13 §3º, art. 15 §§4º e 6º)"},
-    {"zona": "Município (geral)", "parametro": "to_ate_500", "valor": 0.80, "norma": "LCP_208_2022", "dispositivo": "art. 58, I",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "80% em subsolo, térreo e 2º pavimento; acima disso a ocupação resulta dos recuos do Quadro 2 do Anexo II (art. 58, II)"},
-    {"zona": "Município (geral)", "parametro": "to_acima_500", "valor": 0.80, "norma": "LCP_208_2022", "dispositivo": "art. 58, I",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "a lei não distingue por tamanho de lote; mesmo valor"},
-    {"zona": "Município (geral)", "parametro": "permeabilidade_ate_500", "valor": 0.20, "norma": "LCP_208_2022", "dispositivo": "art. 59",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "impermeabilização máxima 80% (até 90% com sistema de infiltração, mantida área permeável mínima de 10% do terreno, art. 59 §3º)"},
-    {"zona": "Município (geral)", "parametro": "permeabilidade_acima_500", "valor": 0.20, "norma": "LCP_208_2022", "dispositivo": "art. 59",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "idem; a lei não distingue por tamanho de lote"},
-    {"zona": "Município (geral)", "parametro": "gabarito_m", "valor": 140, "norma": "LCP_208_2022", "dispositivo": "art. 55 §2º",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "exceto Áreas Especiais de Interesse Turístico e Paisagístico (AEITP); AEITP área II limitada a 30 m (art. 25 §2º)"},
-    {"zona": "Município (geral)", "parametro": "recuo_frente", "valor": null, "norma": "LCP_208_2022", "dispositivo": "art. 60",
-     "vigente_desde": "2022-03-08", "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
-     "nota": "recuos no Quadro 2 do Anexo II, limitados a 7,00 m; subsolo com frente mínima de 3,00 m (art. 60 §1º, I)"}
-  ],
-  "alteracoes": [],
-  "pendencias": [
-    "Anexo II (Quadros 1.1 a 1.4: CA máximo por bairro; Quadro 2: recuos) e Anexo III (Mapas 2/2A) não estão no PDF do SAPL nem anexados no registro da norma 1160. Procurar na SEMURB (natal.rn.gov.br/semurb/legislacao) ou no DOM de 08/03/2022.",
-    "Valores 'Município (geral)' foram lidos do texto da lei por web fetch (arts. 11, 55, 58, 59, 60) e estão como conferido=0.",
-    "Sem conector de lote/zona para Natal (não há serviço aberto).",
-    "Checar no iaJus/SAPL se alguma lei alterou a LC 208 depois de 2022 (SAPL mostra 'Normas Relacionadas: ---')."
-  ]
+ "cidade": "Natal",
+ "uf": "RN",
+ "ibge": "2408102",
+ "normas": [
+  {
+   "id": "LCP_208_2022",
+   "tipo": "LCP",
+   "numero": "208",
+   "ano": 2022,
+   "data": "2022-03-07",
+   "papel": "plano_diretor",
+   "ementa": "Dispõe sobre o Plano Diretor de Natal",
+   "vigencia": "vigente (iaJus, 12/11/2026)",
+   "link": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf"
+  },
+  {
+   "id": "LCP_258_2024",
+   "tipo": "LCP",
+   "numero": "258",
+   "ano": 2024,
+   "data": "2024-12-26",
+   "papel": "alteradora",
+   "ementa": "Código de Obras e Edificações de Natal (a SEMURB publica o Plano Diretor 'compilado pós Código de Obras', indicando alterações na LC 208)",
+   "vigencia": "a confirmar",
+   "link": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/leis/4-LeiComplementar258_CodigodeObras27122024.pdf"
+  },
+  {
+   "id": "LCP_261_2025",
+   "tipo": "LCP",
+   "numero": "261",
+   "ano": 2025,
+   "data": null,
+   "papel": "alteradora",
+   "ementa": "Unificação das Zonas de Proteção Ambiental de Natal (ZPAs); revoga a regulamentação da ZPA-7 feita pela LC 208",
+   "vigencia": "a confirmar",
+   "link": "https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/drenagem/1%20-%20LC%20261-2025%20-%20Unifica%C3%A7%C3%A3o%20das%20Zonas%20de%20Prote%C3%A7%C3%A3o%20Ambiental%20de%20Natal%20-%20ZPAs.pdf"
+  },
+  {
+   "id": "LEI_7801",
+   "tipo": "LEI",
+   "numero": "7801",
+   "ano": null,
+   "data": null,
+   "papel": "alteradora",
+   "ementa": "Uso e ocupação do solo nas Áreas Especiais de Interesse Turístico e Paisagístico (AEITPs); coeficientes iguais aos das Zonas Adensáveis do Plano Diretor, alturas no Anexo I dessa lei (segundo a Tribuna do Norte)",
+   "vigencia": "a confirmar (ano e texto oficial)",
+   "link": "https://tribunadonorte.com.br/natal/lei-regula-uso-e-ocupacao-do-solo-em-areas-de-interesse-turistico-e-paisagistico-em-natal/"
+  }
+ ],
+ "quadros": [],
+ "manuais": [
+  {
+   "zona": "Município (geral)",
+   "parametro": "ca_bas",
+   "valor": 1.0,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 11 §2º",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "CA máximo por bairro/bacia de esgotamento nos Quadros 1.1 a 1.4 do Anexo II e Mapas 2/2A do Anexo III; teto 5,0 (art. 13 §3º, art. 15 §§4º e 6º)"
+  },
+  {
+   "zona": "Município (geral)",
+   "parametro": "to_ate_500",
+   "valor": 0.8,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 58, I",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "80% em subsolo, térreo e 2º pavimento; acima disso a ocupação resulta dos recuos do Quadro 2 do Anexo II (art. 58, II)"
+  },
+  {
+   "zona": "Município (geral)",
+   "parametro": "to_acima_500",
+   "valor": 0.8,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 58, I",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "a lei não distingue por tamanho de lote; mesmo valor"
+  },
+  {
+   "zona": "Município (geral)",
+   "parametro": "permeabilidade_ate_500",
+   "valor": 0.2,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 59",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "impermeabilização máxima 80% (até 90% com sistema de infiltração, mantida área permeável mínima de 10% do terreno, art. 59 §3º)"
+  },
+  {
+   "zona": "Município (geral)",
+   "parametro": "permeabilidade_acima_500",
+   "valor": 0.2,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 59",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "idem; a lei não distingue por tamanho de lote"
+  },
+  {
+   "zona": "Município (geral)",
+   "parametro": "gabarito_m",
+   "valor": 140,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 55 §2º",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "exceto Áreas Especiais de Interesse Turístico e Paisagístico (AEITP); AEITP área II limitada a 30 m (art. 25 §2º)"
+  },
+  {
+   "zona": "Município (geral)",
+   "parametro": "recuo_frente",
+   "valor": null,
+   "norma": "LCP_208_2022",
+   "dispositivo": "art. 60",
+   "vigente_desde": "2022-03-08",
+   "fonte": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+   "nota": "recuos no Quadro 2 do Anexo II, limitados a 7,00 m; subsolo com frente mínima de 3,00 m (art. 60 §1º, I)"
+  }
+ ],
+ "alteracoes": [],
+ "pendencias": [
+  "Anexo II (Quadros 1.1 a 1.4: CA máximo por bairro; Quadro 2: recuos) e Anexo III (Mapas 2/2A): a SEMURB publica a LC 208 com anexos em https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/Plano_Diretor_LC_208_2022.pdf (DOM) e a versão compilada pós Código de Obras em https://www.natal.rn.gov.br/storage/app/media/semurb/legislacao/PLANODIRETOR_POSCODIGODEOBRAS.pdf. O portal natal.rn.gov.br devolve 403 para robôs e o download pelo navegador travou (13/11/2026). Baixar à mão para fontes_locais/natal/ e adicionar em 'quadros' com leitor 'modelo' (ou escrever leitor por regra depois de ver o leiaute).",
+  "Alterações posteriores encontradas, ainda não lidas: LC 258/2024 (Código de Obras; existe compilado da LC 208 pós Código de Obras), LC 261/2025 (unifica as ZPAs; revoga a ZPA-7 da LC 208) e Lei 7.801 (AEITPs). Confirmar números, datas e vigência no SAPL/iaJus.",
+  "Valores 'Município (geral)' foram lidos do texto da lei por web fetch (arts. 11, 55, 58, 59, 60) e estão como conferido=0.",
+  "Sem conector de lote/zona para Natal (não há serviço aberto)."
+ ]
 }

@@ -4,12 +4,14 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from evtl_leis import base, consolidar, extrator, fontes, vigia
 
 FIX = Path(__file__).parent / "fixtures"
 Q3_URL = "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/005-QUADRO_3_FINAL.pdf"
+Q3A_URL = "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/006-QUADRO_3A_FINAL.pdf"
 
 
 class TestExtrator(unittest.TestCase):
@@ -23,6 +25,20 @@ class TestExtrator(unittest.TestCase):
         self.assertIsNone(v[("ZEU", "gabarito_m")]["valor"])
         self.assertEqual(v[("ZER-1", "ca_min")]["valor"], 0.05)
         self.assertIn("500m²", v[("ZEIS-3", "ca_max")]["nota"])
+
+    def test_sp_quadro3_linhas_com_rotulo_vertical(self):
+        # no PDF real, letras de rótulos verticais aparecem antes da zona
+        texto = ("     M        ZEUP (b) 0,5 1   2    0,85    0,70   28   NA   NA     3 (j)  NA\n"
+                 "     Ç   ZER   ZER-2 0,05  1   1    0,50    0,50   10   5    NA     3      NA\n"
+                 "               ZC-ZEIS 0,5 1   2    0,85    0,70   NA    5   NA     3 (j)  NA\n"
+                 "     E         AVP-1  NA  (k)  (k)   (k)    (k)    28   NA    NA    3 (j)  NA\n"
+                 "      (b) Zona recepciona ZEU.\n      (k) Ver artigo 30 desta lei.\n")
+        v = {(l["zona"], l["parametro"]): l for l in extrator.sp_quadro3(texto)}
+        self.assertEqual({z for z, _ in v}, {"ZEUP", "ZER-2", "ZC-ZEIS", "AVP-1"})
+        self.assertIn("(b)", v[("ZEUP", "ca_max")]["nota"])
+        self.assertIsNone(v[("AVP-1", "ca_bas")]["valor"])
+        self.assertIn("artigo 30", v[("AVP-1", "ca_bas")]["nota"])
+        self.assertEqual(v[("AVP-1", "gabarito_m")]["valor"], 28.0)
 
     def test_leiaute_desconhecido_falha_alto(self):
         with self.assertRaises(ValueError):
@@ -47,17 +63,31 @@ class TestConsolidacao(unittest.TestCase):
         self.con.close()
         self.tmp.cleanup()
 
+    def _sp_sem_quadro4(self):
+        """Config de SP sem o Quadro 4 (PDF de tabelas, testado à parte) para rodar sem rede."""
+        original = consolidar.carregar_cidade
+
+        def carregar(slug):
+            cfg = original(slug)
+            cfg["quadros"] = [q for q in cfg["quadros"] if q["leitor"] != "sp_quadro4"]
+            return cfg
+        return mock.patch.object(consolidar, "carregar_cidade", carregar)
+
     def test_sp_offline(self):
-        r = consolidar.atualizar(self.con, "sao-paulo", origem_local={Q3_URL: str(FIX / "sp_quadro3.txt")}, log=lambda *a: None)
+        locais = {Q3_URL: str(FIX / "sp_quadro3.txt"), Q3A_URL: str(FIX / "sp_quadro3a.txt")}
+        with self._sp_sem_quadro4():
+            r = consolidar.atualizar(self.con, "sao-paulo", origem_local=locais, log=lambda *a: None)
         self.assertEqual(r["erros"], [])
-        self.assertEqual(r["novo"], 70)
+        # Quadro 3 (fixture) + 3 PAs × 9 + 11 zonas × 2 (nota a do 3A) + 7 alterações da Lei 18.081
+        self.assertEqual(r["novo"], 70 + 27 + 22 + 7)
         zem = {x["parametro"]: x for x in base.vigente(self.con, "São Paulo", "ZEM")}
         self.assertEqual(zem["ca_max"]["valor"], 2.0)
         self.assertEqual(zem["ca_max"]["norma_id"], "LEI_16402_2016")
         self.assertEqual(zem["ca_max"]["fonte"], Q3_URL)
         self.assertTrue(any("6 m do perfil" in g["texto"] for g in base.regras(self.con, "São Paulo", "ZEM")))
         # rodar de novo não duplica
-        r2 = consolidar.atualizar(self.con, "sao-paulo", origem_local={Q3_URL: str(FIX / "sp_quadro3.txt")}, log=lambda *a: None)
+        with self._sp_sem_quadro4():
+            r2 = consolidar.atualizar(self.con, "sao-paulo", origem_local=locais, log=lambda *a: None)
         self.assertEqual(r2["novo"] + r2["alterado"], 0)
 
     def test_alteracao_versiona(self):
@@ -102,7 +132,7 @@ class TestConfigs(unittest.TestCase):
             for item in cfg.get("quadros", []) + cfg.get("manuais", []) + cfg.get("alteracoes", []):
                 self.assertIn(item["norma"], ids, f"{slug}: norma desconhecida {item['norma']}")
                 for p in ([item["parametro"]] if "parametro" in item else []):
-                    self.assertIn(p, extrator.PARAMETROS)
+                    self.assertTrue(extrator.parametro_valido(p), f"{slug}: parâmetro desconhecido {p}")
 
 
 if __name__ == "__main__":
@@ -120,3 +150,43 @@ class TestManaus(unittest.TestCase):
         self.assertEqual(v[("Subsetor Orla Oeste", "ca_max")], 4.8)
         self.assertNotIn(("Subsetor Orla Oeste", "ca_bas"), v)
         self.assertFalse(any(z.startswith("Setor None") for z, _ in v))
+
+
+class TestSPQuadros3Ae4(unittest.TestCase):
+    def test_quadro3a(self):
+        linhas = extrator.sp_quadro3a((FIX / "sp_quadro3a.txt").read_text(encoding="utf-8"))
+        v = {(l["zona"], l["parametro"]): l for l in linhas}
+        self.assertEqual(v[("PA 1", "permeabilidade_ate_500")]["valor"], 0.15)
+        self.assertEqual(v[("PA 10", "qa_min_acima_10000")]["valor"], 0.42)
+        self.assertIsNone(v[("PA 13", "fator_alfa_vegetacao")]["valor"])
+        self.assertIn("Macroáreas", v[("PA 13", "fator_alfa_vegetacao")]["nota"])
+        # nota (a): permeabilidade fixa por zona, grupos expandidos
+        self.assertEqual(v[("ZEPAM", "permeabilidade_acima_500")]["valor"], 0.9)
+        self.assertEqual(v[("ZPDSr", "permeabilidade_ate_500")]["valor"], 0.7)
+        self.assertEqual(v[("ZCORa", "permeabilidade_ate_500")]["valor"], 0.3)
+        self.assertEqual(v[("ZER-2", "permeabilidade_ate_500")]["valor"], 0.3)
+
+    def test_quadro4_tabela(self):
+        # cabeçalho como o pdfplumber devolve: grupo em cima, subzonas embaixo, "ZC-"+"ZEIS" partido,
+        # zona só numa linha de cima ("ZPR") e células de dados deslocadas em relação ao cabeçalho
+        t = [
+            [None, "GRUPOS", "ZPR", "ZM", None, None, None, None, None],
+            [None, None, None, "ZM", None, "ZMa", None, "ZC-", None],
+            [None, None, None, None, None, None, None, "ZEIS", None],
+            [None, "R1", "SIM", None, "SIM", None, "SIM", None, "NÃO (h)"],
+            [None, "nR1-2", "NÃO", "SIM", None, "NÃO", None, None, "SIM"],
+        ]
+        out, falhas = extrator.sp_quadro4_tabelas([(2, t)])
+        self.assertEqual(falhas, [])
+        v = {(o["zona"], o["uso"]): o for o in out}
+        self.assertEqual(sorted({z for z, _ in v}), ["ZC-ZEIS", "ZM", "ZMa", "ZPR"])
+        self.assertTrue(v[("ZPR", "R1")]["permitido"])
+        self.assertFalse(v[("ZC-ZEIS", "R1")]["permitido"])
+        self.assertEqual(v[("ZC-ZEIS", "R1")]["nota"], "h")
+        self.assertFalse(v[("ZMa", "nR1-2")]["permitido"])
+
+    def test_quadro4_linha_desalinhada_e_falha(self):
+        t = [[None, "G", "ZM", "ZMa"], [None, "R1", "SIM", None]]
+        out, falhas = extrator.sp_quadro4_tabelas([(2, t)])
+        self.assertEqual(out, [])
+        self.assertEqual(falhas, [(2, "R1", 1, 2)])

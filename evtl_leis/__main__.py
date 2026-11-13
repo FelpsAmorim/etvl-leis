@@ -29,7 +29,14 @@ ROTULOS = {"ca_min": "CA mínimo", "ca_bas": "CA básico", "ca_max": "CA máximo
            "permeabilidade_ate_500": "Permeabilidade mín. (até 500 m²)",
            "permeabilidade_acima_500": "Permeabilidade mín. (acima de 500 m²)",
            "gabarito_pav": "Gabarito (pavimentos)", "lote_min_m2": "Lote mínimo (m²)",
-           "testada_min_m": "Testada mínima (m)"}
+           "testada_min_m": "Testada mínima (m)",
+           "qa_min_500_1000": "Quota Ambiental mín. (lote 500-1.000 m²)",
+           "qa_min_1000_2500": "Quota Ambiental mín. (lote 1.000-2.500 m²)",
+           "qa_min_2500_5000": "Quota Ambiental mín. (lote 2.500-5.000 m²)",
+           "qa_min_5000_10000": "Quota Ambiental mín. (lote 5.000-10.000 m²)",
+           "qa_min_acima_10000": "Quota Ambiental mín. (lote > 10.000 m²)",
+           "fator_alfa_vegetacao": "Fator alfa (cobertura vegetal)",
+           "fator_beta_drenagem": "Fator beta (drenagem)"}
 
 
 def _cidade_nome(slug):
@@ -143,7 +150,11 @@ def main(argv=None):
             print(json.dumps(linhas, ensure_ascii=False, indent=2))
             return 0
         zona_atual = None
+        usos = {}
         for r in linhas:
+            if r["parametro"].startswith("uso:"):
+                usos.setdefault(r["zona"], []).append(r)
+                continue
             if r["zona"] != zona_atual:
                 zona_atual = r["zona"]
                 print(f"\n{zona_atual}")
@@ -153,6 +164,12 @@ def main(argv=None):
                   f"{r['norma_id']} {r['dispositivo'] or ''} desde {r['vigente_desde']}{conf}")
             if r["nota"]:
                 print(f"      nota: {r['nota']}")
+        for z, us in usos.items():
+            sim = [u["parametro"][4:] for u in us if u["valor"]]
+            nao = [u["parametro"][4:] + (" (nota)" if u["nota"] else "") for u in us if not u["valor"]]
+            print(f"\nUsos em {z} ({us[0]['norma_id']} Quadro 4, {len(sim)} de {len(us)} permitidos)  [conferir]")
+            print(f"  permitidos: {', '.join(sim) or '—'}")
+            print(f"  não permitidos: {', '.join(nao) or '—'}")
         if not linhas:
             print("Nada na base para esse filtro. Rode 'atualizar' antes.")
         rg = base.regras(con, _cidade_nome(args.cidade), args.zona)
