@@ -9,7 +9,7 @@ crons = ["0 9 * * 1"]
 [[d1_databases]]
 binding = "DB"
 database_name = "evtl-leis"
-database_id = "COLE_AQUI_O_ID_DO_D1"   # saída de: npx wrangler d1 create evtl-leis
+database_id = "318dc4b6-dafe-4008-bd4f-d9e4e3e8862b"   # saída de: npx wrangler d1 create evtl-leis
 
 [observability]
 enabled = true
