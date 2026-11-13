@@ -18,11 +18,28 @@ Mostra, fonte por fonte, o que a máquina alcança. No ambiente de nuvem onde is
     python -m evtl_leis atualizar --todas            # baixa quadros, aplica alterações, grava evtl_leis.db
     python -m evtl_leis consultar --cidade sao-paulo --zona ZEM
     python -m evtl_leis consultar --cidade sao-paulo --zona ZEM --json   # para o motor de cálculo
+    python -m evtl_leis consultar --cidade sao-paulo --zona ZPI-2 --data 2020-01-01   # valores vigentes nessa data
     python -m evtl_leis historico --cidade sao-paulo --zona ZEM --parametro ca_max
     python -m evtl_leis vigiar --desde 2024-01-01    # menções novas às leis base nos diários oficiais
     python -m evtl_leis avisos
     python -m evtl_leis pendencias                   # o que falta, por cidade
     python -m evtl_leis ler <url>                    # artigos, notas de alteração e anexos de uma lei
+
+### Busca do lote (lote -> zona -> parâmetros + regras)
+
+    python -m evtl_leis buscar --cidade sao-paulo --sql 009.096.0000           # ou --endereco "R Samuel das Neves" --numero 74, ou --lat/--lon
+    python -m evtl_leis buscar --cidade manaus --endereco "Av Djalma Batista, 1661"   # ou --cgl, ou --lat/--lon
+    python -m evtl_leis buscar --cidade natal --bairro Tirol --bacia CS --eixo "Prudente de Morais"   # ou --lat/--lon
+
+| Cidade | Entrada | Fonte da zona | O que o usuário ainda informa |
+|---|---|---|---|
+| São Paulo | SQL, endereço + número, lat/lon | GeoSampa: Mapa 1 da Lei 18.177/2024 (e o de 2016, para comparar) | nada |
+| Manaus | endereço, CGL, lat/lon | ArcGIS da IMPLURB: setores, subsetores, lotes, bairros | nada |
+| Natal | bairro/bacia/eixo, ou lat/lon | portal ArcGIS da SEMURB: bairro e áreas especiais (ZA, ZPAs, AEIS...) | bacia de esgotamento e eixo (Mapas 2/2A sem serviço aberto) |
+
+Lote em mais de uma zona (SP): a busca estima a fração de cada zona por amostragem de pontos.
+
+`--data AAAA-MM-DD` (em `buscar` e `consultar`) devolve os parâmetros na versão que valia naquela data. Use a data do laudo ao comparar com os EVTLs do gabarito: um laudo de 2022 em SP seguiu a Lei 16.402 antes das mudanças de 2024. As regras textuais ainda não têm data de vigência; a resposta avisa.
 
 Para leiaute de quadro sem leitor por regra: `atualizar --modelo` (precisa de `ANTHROPIC_API_KEY`; usa o Claude Haiku 5.5 só para transcrever, e as linhas saem marcadas "conferir").
 
@@ -51,13 +68,15 @@ O iaJus é um conector MCP usado pelo Claude, não uma API aberta para o script.
 2. O resultado (link oficial, data, vigência) entra em `cidades/<cidade>.json`, bloco `normas`.
 3. O `vigiar` roda sozinho (cron semanal) pelo Querido Diário. Um aviso novo é conferido no iaJus e, se for alteração, vira entrada em `alteracoes` ou `regras`.
 
-## Estado por cidade (12/11/2026)
+## Estado por cidade (13/11/2026)
 
-**São Paulo.** Quadro 3 (CA, TO, gabarito, recuos, cota parte) com leitor por regra, 7 zonas testadas. Lidos os arts. 1 a 41 da Lei 18.081/2024 e toda a 18.177/2024: nenhum muda número do Quadro 3. Sete mudanças de regra entraram em `regras`, e o Mapa 1 de 2024 mudou a zona de vários lotes. Faltam: o restante da 18.081, a Lei 18.209 citada nos laudos (não encontrada), a permeabilidade (Quadro 3A + Mapa 3), os usos (Quadro 4) e a zona pelo mapa de 2024.
+Base: 3.187 parâmetros, 23 regras e 12 normas, todos com `conferido=0`.
 
-**Natal.** Valores gerais da LC 208/2022 (CA básico 1,0; TO 80%; permeabilidade 20%; gabarito 140 m; recuos até 7 m), tirados do texto da lei. O CA máximo por bairro e o quadro de recuos estão no Anexo II, que não está publicado no SAPL.
+**São Paulo.** Lei 16.402/2016: Quadro 3 (34 zonas), Quadro 3A (permeabilidade e Quota Ambiental) e Quadro 4 (usos, 40 zonas × 59 subcategorias). Lei 18.081/2024 lida inteira (art. 72 muda a TO de ZPI-2; art. 73 muda usos; o resto entrou como regras). Lei 18.177/2024: regras de aplicação e o Mapa 1 novo. Busca do lote pelo GeoSampa. Faltam: Mapa 3 (perímetro PA), linhas AVP-2/AC-1/AC-2 do Quadro 3, sobreposições (ZEPEC, operação urbana, tombamento), checar se a 18.177 mudou o Quadro 4 e a Lei 18.209.
 
-**Manaus.** Só as normas cadastradas. O SAPL da Câmara bloqueia robôs, e não achei a Lei 1.838 nem o Anexo I da 2.402 em outra fonte aberta. Caminhos: baixar os PDFs à mão para `fontes_locais/manaus/`, ou usar os parâmetros por setor do ArcGIS da IMPLURB (CAMT e gabarito).
+**Natal.** LC 208/2022: valores gerais e Anexo II, Quadros 1.1 a 1.4 (30 bacias, 36 bairros, 108 combinações bairro × bacia, 100 valores de eixos). Busca do bairro e das áreas especiais pela coordenada. Faltam: Quadro 2 (recuos, imagem no PDF), a bacia do lote (sem mapa aberto) e confirmar a LC 261/2025 e a Lei 7.801.
+
+**Manaus.** 116 valores de 18 setores e 16 subsetores, do ArcGIS da IMPLURB. Busca do lote por endereço, CGL ou coordenada. Faltam: TO e recuos (Lei 1.838/2014, SAPL bloqueia robôs) e confirmar que o gabarito está em pavimentos.
 
 Veja `python -m evtl_leis pendencias` para a lista completa.
 
@@ -76,4 +95,13 @@ Veja `python -m evtl_leis pendencias` para a lista completa.
 
 ## Cloudflare (plano free)
 
-Consulta, vigia e diagnóstico rodam num Worker com D1; a extração dos PDFs roda no GitHub Actions ou no Mac e carrega o D1. Passo a passo em `cloudflare/DEPLOY.md`.
+Consulta, busca do lote, vigia e diagnóstico rodam num Worker com D1; a extração dos PDFs roda no GitHub Actions ou no Mac e carrega o D1. Passo a passo em `cloudflare/DEPLOY.md`.
+
+Rotas: `/buscar` (mesmos parâmetros da CLI: `cidade`, `sql`, `endereco`, `numero`, `cgl`, `bairro`, `bacia`, `eixo`, `lat`, `lon`, `data`), `/consultar`, `/historico`, `/normas`, `/avisos`, `/diagnostico`, `/vigiar`. Exemplo:
+
+    /buscar?cidade=natal&bairro=Tirol&bacia=CS
+    /buscar?cidade=sao-paulo&sql=009.096.0000&data=2022-05-01
+
+A lógica da busca existe em dois lugares: `evtl_leis/busca.py` + `lote.py` (referência) e `cloudflare/src/busca.js`. Mudou um, mude o outro; os testes dos dois usam os mesmos casos.
+
+    cd cloudflare && npm test    # testes do Worker, offline
