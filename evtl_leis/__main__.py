@@ -11,6 +11,9 @@ Comandos:
   python -m evtl_leis pendencias                   # o que falta por cidade
   python -m evtl_leis ler <url>                    # lê uma lei (HTML/PDF) e lista artigos e notas
   python -m evtl_leis zona --cidade sao-paulo --sql 009.096.0000   # ou --endereco "Av Paulista" --numero 1578, ou --lat/--lon
+  python -m evtl_leis buscar --cidade manaus --endereco "Av Djalma Batista, 1661"  # ou --lat/--lon, --cgl
+  python -m evtl_leis buscar --cidade natal --bairro Tirol --bacia CS [--eixo "Prudente de Morais"]  # ou --lat/--lon
+  python -m evtl_leis buscar --cidade sao-paulo --sql 009.096.0000  # ou --endereco/--numero, --lat/--lon
   python -m evtl_leis exportar                     # gera cloudflare/d1_dados.sql e cloudflare/src/fontes.json
 """
 
@@ -18,7 +21,7 @@ import argparse
 import json
 import sys
 
-from . import base, consolidar, diagnostico, exportar, fontes, lote, vigia
+from . import base, busca, consolidar, diagnostico, exportar, fontes, lote, vigia
 
 ROTULOS = {"ca_min": "CA mínimo", "ca_bas": "CA básico", "ca_max": "CA máximo",
            "to_ate_500": "TO (lote até 500 m²)", "to_acima_500": "TO (lote acima de 500 m²)",
@@ -78,6 +81,13 @@ def main(argv=None):
     z.add_argument("--lat", type=float)
     z.add_argument("--lon", type=float)
     z.add_argument("--json", action="store_true")
+    bu = sub.add_parser("buscar", help="lote -> zona -> parâmetros e regras (SP, Manaus, Natal)")
+    bu.add_argument("--cidade", required=True, choices=["sao-paulo", "manaus", "natal"])
+    for a in ("--sql", "--cgl", "--endereco", "--numero", "--bairro", "--bacia", "--eixo"):
+        bu.add_argument(a)
+    bu.add_argument("--lat", type=float)
+    bu.add_argument("--lon", type=float)
+    bu.add_argument("--json", action="store_true")
     l = sub.add_parser("ler")
     l.add_argument("url")
     args = ap.parse_args(argv)
@@ -143,6 +153,40 @@ def main(argv=None):
                 print(f"  ! {e}")
             erros += len(r["erros"])
         return 1 if erros else 0
+
+    if args.cmd == "buscar":
+        kw = {k: getattr(args, k) for k in ("sql", "cgl", "endereco", "numero", "bairro", "bacia", "eixo", "lat", "lon")
+              if getattr(args, k) is not None}
+        if not kw:
+            ap.error("informe como achar o lote (--lat/--lon, --sql, --cgl, --endereco ou --bairro)")
+        r = busca.buscar(con, args.cidade, **kw)
+        if args.json:
+            print(json.dumps(r, ensure_ascii=False, indent=2, default=str))
+            return 0
+        ident = {k: r[k] for k in ("lote", "endereco_encontrado", "bairro", "bairro_oficial",
+                                   "regiao_administrativa", "sobreposicoes", "bacias_do_bairro") if r.get(k)}
+        print(f"{r['cidade']}: {json.dumps(ident, ensure_ascii=False)}")
+        if r.get("zonas_2016") and r.get("mudou_desde_2016"):
+            print(f"ATENÇÃO: zona mudou desde 2016 (era {', '.join(z['zona'] for z in r['zonas_2016'])}).")
+        for a in r.get("avisos", []) + ([r["aviso"]] if r.get("aviso") else []):
+            print(f"  ! {a}")
+        for z, ps in r["parametros"].items():
+            normais = [x for x in ps if not x["parametro"].startswith("uso:")]
+            usos = [x for x in ps if x["parametro"].startswith("uso:")]
+            print(f"\n{z}")
+            for x in normais:
+                val = "—" if x["valor"] is None else f"{x['valor']:g}".replace(".", ",")
+                print(f"  {ROTULOS.get(x['parametro'], x['parametro']):<45} {val:>6}   {x['norma_id']} {x['dispositivo'] or ''}"
+                      + ("" if x["conferido"] else "  [conferir]"))
+            if usos:
+                print(f"  Usos permitidos: {sum(1 for u in usos if u['valor'])} de {len(usos)} (detalhe: consultar --zona {z})")
+            if not ps:
+                print("  (sem parâmetros na base para esta zona)")
+        if r["regras"]:
+            print("\nRegras:")
+            for g in r["regras"]:
+                print(f"  - {g['texto']} ({g['norma_id']}, {g['dispositivo']})")
+        return 0
 
     if args.cmd == "consultar":
         linhas = base.vigente(con, _cidade_nome(args.cidade), args.zona)
