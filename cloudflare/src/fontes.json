@@ -1,0 +1,59 @@
+{
+  "alvos": {
+    "Querido Diário (vigia)": "https://api.queridodiario.ok.org.br/gazettes?size=1",
+    "API do Claude (modo --modelo)": "https://api.anthropic.com/v1/models",
+    "iaJus MCP": "https://mcp.iajus.com.br/mcp",
+    "GeoSampa WFS (lote/zona SP)": "https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/ows?service=WFS&request=GetCapabilities",
+    "ArcGIS IMPLURB (lote/setor Manaus)": "https://pmm.manaus.am.gov.br/arcgis/rest/services?f=json",
+    "Manaus: LCP_2_2014": "https://www.manaus.am.gov.br/implurb/wp-content/uploads/sites/13/2023/08/LEGISLACAO-URBANISTICA-MUNICIPAL-PLANO-DIRETOR-E-AMBIENTAL-DE-MANAUS-E-SUAS-LEIS-COMPLEMENTARES-Versao-01.pdf",
+    "Manaus: LEI_1838_2014": "https://sapl.cmm.am.gov.br/norma/74",
+    "Manaus: LEI_2402_2019": "https://sapl.cmm.am.gov.br/norma/47",
+    "Natal: LCP_208_2022": "https://sapl.natal.rn.leg.br/media/sapl/public/normajuridica/2022/1160/pdn_-_lc_208_2022.pdf",
+    "São Paulo: LEI_16050_2014": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16050-de-31-de-julho-de-2014",
+    "São Paulo: LEI_17975_2023": "https://legislacao.prefeitura.sp.gov.br/leis/lei-17975-de-8-de-julho-de-2023",
+    "São Paulo: LEI_16402_2016": "https://legislacao.prefeitura.sp.gov.br/leis/lei-16402-de-22-de-marco-de-2016",
+    "São Paulo: LEI_18081_2024": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18081-de-19-de-janeiro-de-2023",
+    "São Paulo: LEI_18177_2024": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18177-de-25-de-julho-de-2024",
+    "São Paulo: Quadro 3 - Parâmetros de ocupação": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/005-QUADRO_3_FINAL.pdf"
+  },
+  "cidades": {
+    "manaus": {
+      "cidade": "Manaus",
+      "ibge": "1302603",
+      "normas_base": [
+        {
+          "id": "LCP_2_2014",
+          "termo": "Lei 2"
+        },
+        {
+          "id": "LEI_1838_2014",
+          "termo": "Lei 1.838"
+        }
+      ]
+    },
+    "natal": {
+      "cidade": "Natal",
+      "ibge": "2408102",
+      "normas_base": [
+        {
+          "id": "LCP_208_2022",
+          "termo": "Lei 208"
+        }
+      ]
+    },
+    "sao-paulo": {
+      "cidade": "São Paulo",
+      "ibge": "3550308",
+      "normas_base": [
+        {
+          "id": "LEI_16050_2014",
+          "termo": "Lei 16.050"
+        },
+        {
+          "id": "LEI_16402_2016",
+          "termo": "Lei 16.402"
+        }
+      ]
+    }
+  }
+}

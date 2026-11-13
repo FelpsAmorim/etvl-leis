@@ -1,0 +1,15 @@
+name = "evtl-leis"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Vigia: toda segunda às 09:00 UTC (06:00 em Brasília)
+[triggers]
+crons = ["0 9 * * 1"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "evtl-leis"
+database_id = "COLE_AQUI_O_ID_DO_D1"   # saída de: npx wrangler d1 create evtl-leis
+
+[observability]
+enabled = true

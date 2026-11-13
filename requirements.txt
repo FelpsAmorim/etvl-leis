@@ -1,0 +1,2 @@
+pdfplumber>=0.11      # ler os quadros em PDF
+anthropic>=1.0        # opcional: só para --modelo (transcrição de leiaute desconhecido)

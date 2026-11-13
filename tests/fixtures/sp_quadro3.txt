@@ -1,0 +1,13 @@
+QUADRO 3 - PARÂMETROS DE OCUPAÇÃO, EXCETO DE QUOTA AMBIENTAL
+ZEU    0,5  1  4      0,85  0,70  NA  NA  NA  3 (j)  20
+ZEM    0,5  1  2 (d)  0,85  0,70  28  NA  NA  3 (j)  20
+ZC     0,3  1  2      0,85  0,70  48  5   NA  3 (j)  NA
+ZM     0,3  1  2      0,85  0,70  28  5   NA  3 (j)  NA
+ZEIS-3 0,5  1  4 (g)  0,85  0,70  NA  5   NA  3 (j)  NA
+ZDE-1  0,5  1  2      0,70  0,70  28  5   NA  3 (j)  NA
+ZER-1  0,05 1  1      0,50  0,50  10  5   NA  3      NA
+(d) O CAmáx será igual a 4 nos casos dispostos no §1º do artigo 8º desta lei.
+(g) O CAmáx será igual a 2 nos casos em que o lote for menor que 500m²
+(quinhentos metros quadrados).
+(j) Os recuos laterais e de fundo para altura da edificação superior a 10m (dez metros) serão dispensados conforme
+disposições estabelecidas nos incisos II e III do artigo 66 desta lei.
