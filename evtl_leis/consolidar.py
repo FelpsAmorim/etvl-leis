@@ -57,7 +57,8 @@ def atualizar(con, slug, *, usar_modelo=False, origem_local=None, fontes_locais=
             resumo["erros"].append(f"{q['rotulo']}: precisa de --modelo (leiaute sem leitor por regra)")
             continue
         try:
-            fonte_q = origem_local.get(q["url"], q["url"])
+            # "arquivo": transcrição guardada em cidades/ (quando o original não é legível por máquina)
+            fonte_q = origem_local.get(q["url"], str(PASTA_CIDADES / q["arquivo"]) if q.get("arquivo") else q["url"])
             texto = fontes.baixar(fonte_q)[0] if leitor in extrator.LEITORES_PDF else fontes.texto_de(fonte_q)
             linhas, origem = extrator.extrair(texto, leitor)
         except Exception as e:

@@ -48,7 +48,17 @@
    "link": "https://tribunadonorte.com.br/natal/lei-regula-uso-e-ocupacao-do-solo-em-areas-de-interesse-turistico-e-paisagistico-em-natal/"
   }
  ],
- "quadros": [],
+ "quadros": [
+  {
+   "rotulo": "Anexo II - Quadros 1.1 a 1.4 (CA máximo por bairro, bacia e eixo)",
+   "norma": "LCP_208_2022",
+   "vigente_desde": "2022-03-08",
+   "leitor": "natal_anexo2",
+   "conferido": false,
+   "arquivo": "natal_anexo2.txt",
+   "url": "DOM Natal 08/03/2022, p. 27-30"
+  }
+ ],
  "manuais": [
   {
    "zona": "Município (geral)",
@@ -424,7 +434,7 @@
  "alteracoes": [],
  "pendencias": [
   "Anexo II lido do texto do compilado pós Código de Obras (fontes_locais/natal/PLANODIRETOR_POSCODIGODEOBRAS.pdf.txt). Entrou o CA máximo das 30 bacias de esgotamento (linhas 'CA' dos Quadros 1.1/1.2, conferidas contra os rótulos dos Mapas 2/2A: 28 batem, 2 ilegíveis no mapa).",
-  "Quadros 1.1/1.2 (qual bacia cobre cada bairro) e 1.3/1.4 (CA por eixo estruturante e bacia): no texto extraído as células perderam a posição; precisa do PDF original para ler com coordenadas (pdfplumber).",
+  "Quadros 1.1 a 1.4 transcritos em cidades/natal_anexo2.txt a partir do PDF do DOM de 08/03/2022 (p. 27-30), lidos pela posição das células e conferidos contra a imagem. Os bairros das zonas Leste e Oeste aparecem no Quadro 1.2 com bacias; no 1.1 só com o máximo.",
   "Quadro 2 (recuos em função de H) é imagem no PDF; só a legenda saiu no texto. Transcrever à mão ou pelo --modelo com a imagem.",
   "Sem consulta lote -> bacia: os Mapas 2/2A não têm serviço aberto; a bacia do lote precisa ser informada.",
   "Confirmar números, datas e vigência da LC 261/2025 (ZPAs) e da Lei 7.801 (AEITPs).",

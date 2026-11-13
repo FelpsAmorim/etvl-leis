@@ -190,3 +190,31 @@ class TestSPQuadros3Ae4(unittest.TestCase):
         out, falhas = extrator.sp_quadro4_tabelas([(2, t)])
         self.assertEqual(out, [])
         self.assertEqual(falhas, [(2, "R1", 1, 2)])
+
+
+class TestNatalAnexo2(unittest.TestCase):
+    def test_leitor(self):
+        texto = ("# comentário\n1.1;TIROL;MAX=5\n1.2;TIROL;BS=2,CS=5,GS=1.5,MAX=5\n"
+                 "1.4;AVENIDA BAHIA;AN=3,BN=1.5\n")
+        v = {(l["zona"]): l for l in extrator.natal_anexo2(texto)}
+        self.assertEqual(v["Bairro TIROL"]["valor"], 5.0)
+        self.assertEqual(v["Bairro TIROL"]["dispositivo"], "Anexo II, Quadro 1.2")  # prefere o quadro com bacias
+        self.assertEqual(v["Bairro TIROL / Bacia GS"]["valor"], 1.5)
+        self.assertEqual(v["Eixo AVENIDA BAHIA / Bacia AN"]["valor"], 3.0)
+        with self.assertRaises(ValueError):
+            extrator.natal_anexo2("1.2;X;AS=4,MAX=5\n")  # MAX diferente do maior CA das bacias
+
+    def test_transcricao_bate_com_ca_das_bacias(self):
+        import math
+        cfg = consolidar.carregar_cidade("natal")
+        bacia = {m["zona"][6:]: m["valor"] for m in cfg["manuais"] if m["zona"].startswith("Bacia ")}
+        linhas = extrator.natal_anexo2((consolidar.PASTA_CIDADES / "natal_anexo2.txt").read_text(encoding="utf-8"))
+        self.assertEqual(len(linhas), 244)
+        for l in linhas:
+            if "/ Bacia " not in l["zona"]:
+                continue
+            b = bacia[l["zona"].split("/ Bacia ")[1]]
+            if l["zona"].startswith("Bairro"):
+                self.assertEqual(l["valor"], b, l["zona"])
+            else:  # eixo: +50% sobre a bacia (art. 15 §4º), em passos de 0,5, teto 5,0
+                self.assertEqual(l["valor"], min(5.0, math.ceil(b * 3) / 2), l["zona"])

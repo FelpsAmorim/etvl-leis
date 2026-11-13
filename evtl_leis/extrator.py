@@ -304,7 +304,51 @@ def manaus_setores(texto):
     return out
 
 
-LEITORES = {"sp_quadro3": sp_quadro3, "sp_quadro3a": sp_quadro3a, "manaus_setores": manaus_setores}
+# ---------- Natal, Anexo II da LC 208/2022 (Quadros 1.1 a 1.4), transcrito em cidades/natal_anexo2.txt ----------
+
+def natal_anexo2(texto):
+    """Linhas 'quadro;nome;BACIA=CA,...,MAX=CA'. Quadros 1.1/1.2: bairros (zona 'Bairro X' e
+    'Bairro X / Bacia YY'); 1.3/1.4: eixos estruturantes (zona 'Eixo X / Bacia YY')."""
+    out, maximos = [], {}
+    for n, l in enumerate(texto.splitlines(), 1):
+        l = l.strip()
+        if not l or l.startswith("#"):
+            continue
+        partes = l.split(";")
+        if len(partes) != 3 or partes[0] not in ("1.1", "1.2", "1.3", "1.4"):
+            raise ValueError(f"natal_anexo2, linha {n}: formato inválido: {l!r}")
+        quadro, nome, celulas = partes
+        valores = {}
+        for c in filter(None, celulas.split(",")):
+            k, v = c.split("=")
+            valores[k.strip()] = float(v)
+        disp = f"Anexo II, Quadro {quadro}"
+        mx = valores.pop("MAX", None)
+        if quadro in ("1.1", "1.2"):
+            if valores and mx is not None and max(valores.values()) != mx:
+                raise ValueError(f"natal_anexo2, linha {n}: MAX {mx} difere do maior CA das bacias de {nome}")
+            if mx is not None:
+                if nome in maximos and maximos[nome][0] != mx:
+                    raise ValueError(f"natal_anexo2: CA máximo de {nome} diverge entre quadros")
+                if nome not in maximos or (valores and not maximos[nome][1]):
+                    maximos[nome] = (mx, bool(valores), disp)
+            for b, v in valores.items():
+                out.append({"zona": f"Bairro {nome} / Bacia {b}", "parametro": "ca_max", "valor": v,
+                            "nota": f"Parte do bairro {nome} na bacia de esgotamento {b}.", "dispositivo": disp})
+        else:
+            for b, v in valores.items():
+                out.append({"zona": f"Eixo {nome} / Bacia {b}", "parametro": "ca_max", "valor": v,
+                            "nota": "Lote lindeiro ao eixo estruturante (até uma quadra), no trecho da bacia "
+                                    f"{b}; já inclui o acréscimo do art. 15 §4º. Quadra contígua: +25% sobre a bacia.",
+                            "dispositivo": disp})
+    for nome, (mx, _, disp) in maximos.items():
+        out.append({"zona": f"Bairro {nome}", "parametro": "ca_max", "valor": mx,
+                    "nota": "Maior CA entre as bacias que cortam o bairro; o CA do lote depende da bacia (ver 'Bairro "
+                            f"{nome} / Bacia ...').", "dispositivo": disp})
+    return out
+
+
+LEITORES = {"sp_quadro3": sp_quadro3, "natal_anexo2": natal_anexo2, "sp_quadro3a": sp_quadro3a, "manaus_setores": manaus_setores}
 LEITORES_PDF = {"sp_quadro4": sp_quadro4}  # recebem os bytes do PDF (leem tabelas)
 
 
