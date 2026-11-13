@@ -100,7 +100,66 @@ def via_modelo(texto, modelo="claude-haiku-5-5"):
     return dados["linhas"]
 
 
-LEITORES = {"sp_quadro3": sp_quadro3}
+# ---------- Manaus: camada SETORES/SUBSETORES do ArcGIS da IMPLURB (Anexo I da Lei 1.838/2014) ----------
+
+_RE_CABT = re.compile(r"CABT\s*=\s*(\d+(?:,\d+)?)")
+
+
+def _num_br(v):
+    if v is None:
+        return None
+    v = str(v).strip().replace(".", "").replace(",", ".")
+    try:
+        return float(v)
+    except ValueError:
+        return None
+
+
+def manaus_setores(texto):
+    """JSON de uma query ArcGIS (f=json) das camadas SETORES ou SUBSETORES.
+    Gabarito do Anexo I é em pavimentos (gabarito_pav), não em metros."""
+    dados = json.loads(texto)
+    out = []
+    for f in dados.get("features", []):
+        a = f["attributes"]
+        if "SETOR" in a:  # camada SETORES
+            if not a.get("SETOR"):
+                continue  # zonas turísticas (ZT) sem parâmetros na camada
+            zona = f"Setor {a['SETOR']}"
+            camt, gab, outorga = a.get("ANXI_CAMT"), a.get("ANXI_GAB_MAX"), a.get("ANXI_OUTRG_ONER")
+            dens, vert = a.get("ANXI_DENSID"), a.get("ANXI_OCUP_VERTIC")
+            obs = [f"Bairros: {a['BAIRRO']}" if a.get("BAIRRO") else None, a.get("ANXI_APRV_7COMAR")]
+            lote_min, testada = a.get("PARCSOLO_LOTE_AREA_MIN"), a.get("PARCSOLO_LOTE_TEST_MIN")
+        elif "SETOR_" in a:  # camada SUBSETORES
+            zona = a["SETOR_"].strip().title().replace("Subsetor ", "Subsetor ")
+            camt, gab, outorga = a.get("CAMT_"), a.get("GABARITO_MAXIMO"), a.get("OUTORGA_ONEROSA_")
+            dens, vert = a.get("DENSIDADE_"), a.get("OCUPACAO_VERTICALIZACAO")
+            obs, lote_min, testada = [], None, None
+        else:
+            continue
+        base = "; ".join(filter(None, [f"densidade {dens}" if dens else None,
+                                        f"ocupação {vert}" if vert else None] + obs)) or None
+        out.append({"zona": zona, "parametro": "ca_max", "valor": _num_br(camt),
+                    "nota": "CAMT (coeficiente de aproveitamento máximo do terreno). " + (base or ""),
+                    "dispositivo": "Anexo I (camada IMPLURB)"})
+        m = _RE_CABT.search(outorga or "")
+        if m:
+            out.append({"zona": zona, "parametro": "ca_bas", "valor": _num_br(m.group(1)),
+                        "nota": "CABT; outorga onerosa e transferência do direito de construir admitidas.",
+                        "dispositivo": "Anexo I (camada IMPLURB)"})
+        out.append({"zona": zona, "parametro": "gabarito_pav", "valor": _num_br(gab),
+                    "nota": "Gabarito máximo em pavimentos (conferir unidade no Anexo I).",
+                    "dispositivo": "Anexo I (camada IMPLURB)"})
+        if lote_min:
+            out.append({"zona": zona, "parametro": "lote_min_m2", "valor": _num_br(lote_min), "nota": None,
+                        "dispositivo": "Parcelamento do solo (camada IMPLURB)"})
+        if testada:
+            out.append({"zona": zona, "parametro": "testada_min_m", "valor": _num_br(testada), "nota": None,
+                        "dispositivo": "Parcelamento do solo (camada IMPLURB)"})
+    return out
+
+
+LEITORES = {"sp_quadro3": sp_quadro3, "manaus_setores": manaus_setores}
 
 
 def extrair(texto, leitor):

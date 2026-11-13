@@ -1,22 +1,67 @@
 {
-  "cidade": "Manaus", "uf": "AM", "ibge": "1302603",
-  "normas": [
-    {"id": "LCP_2_2014", "tipo": "LCP", "numero": "2", "ano": 2014, "data": "2014-01-16", "papel": "plano_diretor",
-     "ementa": "Plano Diretor Urbano e Ambiental do Município de Manaus", "vigencia": "vigente (iaJus, 12/11/2026)",
-     "link": "https://www.manaus.am.gov.br/implurb/wp-content/uploads/sites/13/2023/08/LEGISLACAO-URBANISTICA-MUNICIPAL-PLANO-DIRETOR-E-AMBIENTAL-DE-MANAUS-E-SUAS-LEIS-COMPLEMENTARES-Versao-01.pdf"},
-    {"id": "LEI_1838_2014", "tipo": "LEI", "numero": "1838", "ano": 2014, "data": "2014-01-16", "papel": "zoneamento",
-     "ementa": "Normas de Uso e Ocupação do Solo no Município de Manaus", "vigencia": "vigente (iaJus, 12/11/2026)",
-     "link": "https://sapl.cmm.am.gov.br/norma/74"},
-    {"id": "LEI_2402_2019", "tipo": "LEI", "numero": "2402", "ano": 2019, "data": "2019-01-16", "papel": "alteradora",
-     "ementa": "ALTERA a Lei n. 1.838, de 16 de janeiro de 2014", "vigencia": "vigente (iaJus, 12/11/2026)",
-     "link": "https://sapl.cmm.am.gov.br/norma/47"}
-  ],
-  "quadros": [],
-  "manuais": [],
-  "alteracoes": [],
-  "pendencias": [
-    "Texto e Anexo I da Lei 1.838/2014 e da Lei 2.402/2019 não acessíveis daqui: o SAPL da Câmara (sapl.cmm.am.gov.br) bloqueia robôs e o iaJus deu erro de certificado. A compilação da IMPLURB (2021) só traz o Plano Diretor (LC 002/2014). Baixar os PDFs pelo navegador e colocar em fontes_locais/manaus/ ou adicionar em 'quadros' com leitor 'modelo'.",
-    "Enquanto isso, os parâmetros por setor podem vir do ArcGIS da IMPLURB (camada SETORES: ANEXOI_CAMT, ANEXOI_GABARITO_MAX), que já tem conector no evtl_consulta.py.",
-    "Conferir a premissa 'art. 77 §1º da 1.838 (isenção de permeabilidade no Sítio Histórico)': a leitura parcial indicou que o art. 77 pode não ter §1º. O Centro Histórico é Setor 1 com subsetores Centro Antigo e Sítio Histórico (Plano Diretor, art. 2º, II, Anexo VI)."
-  ]
+ "cidade": "Manaus",
+ "uf": "AM",
+ "ibge": "1302603",
+ "normas": [
+  {
+   "id": "LCP_2_2014",
+   "tipo": "LCP",
+   "numero": "2",
+   "ano": 2014,
+   "data": "2014-01-16",
+   "papel": "plano_diretor",
+   "ementa": "Plano Diretor Urbano e Ambiental do Município de Manaus",
+   "vigencia": "vigente (iaJus, 12/11/2026)",
+   "link": "https://www.manaus.am.gov.br/implurb/wp-content/uploads/sites/13/2023/08/LEGISLACAO-URBANISTICA-MUNICIPAL-PLANO-DIRETOR-E-AMBIENTAL-DE-MANAUS-E-SUAS-LEIS-COMPLEMENTARES-Versao-01.pdf"
+  },
+  {
+   "id": "LEI_1838_2014",
+   "tipo": "LEI",
+   "numero": "1838",
+   "ano": 2014,
+   "data": "2014-01-16",
+   "papel": "zoneamento",
+   "ementa": "Normas de Uso e Ocupação do Solo no Município de Manaus",
+   "vigencia": "vigente (iaJus, 12/11/2026)",
+   "link": "https://sapl.cmm.am.gov.br/norma/74"
+  },
+  {
+   "id": "LEI_2402_2019",
+   "tipo": "LEI",
+   "numero": "2402",
+   "ano": 2019,
+   "data": "2019-01-16",
+   "papel": "alteradora",
+   "ementa": "ALTERA a Lei n. 1.838, de 16 de janeiro de 2014",
+   "vigencia": "vigente (iaJus, 12/11/2026)",
+   "link": "https://sapl.cmm.am.gov.br/norma/47"
+  }
+ ],
+ "quadros": [
+  {
+   "rotulo": "Anexo I - parâmetros por setor (ArcGIS IMPLURB, camada SETORES)",
+   "norma": "LEI_1838_2014",
+   "vigente_desde": "2014-01-16",
+   "leitor": "manaus_setores",
+   "conferido": false,
+   "url": "https://pmm.manaus.am.gov.br/arcgis/rest/services/IMPLURB/IMPLURB_PATRIMONIO_HISTORICO_SRGS/MapServer/5/query?where=1%3D1&outFields=*&returnGeometry=false&f=json"
+  },
+  {
+   "rotulo": "Anexo I - parâmetros por subsetor (ArcGIS IMPLURB, camada SUBSETORES)",
+   "norma": "LEI_1838_2014",
+   "vigente_desde": "2014-01-16",
+   "leitor": "manaus_setores",
+   "conferido": false,
+   "url": "https://pmm.manaus.am.gov.br/arcgis/rest/services/IMPLURB/IMPLURB_PATRIMONIO_HISTORICO_SRGS/MapServer/4/query?where=1%3D1&outFields=*&returnGeometry=false&f=json"
+  }
+ ],
+ "manuais": [],
+ "alteracoes": [],
+ "pendencias": [
+  "Parâmetros por setor/subsetor vêm da base geográfica da IMPLURB (camadas SETORES e SUBSETORES), não do texto da lei. Conferir contra o Anexo I da Lei 1.838/2014 e as mudanças da Lei 2.402/2019; o SAPL da Câmara bloqueia robôs, então baixar os PDFs pelo navegador para fontes_locais/manaus/.",
+  "Gabarito do Anexo I está em pavimentos (gabarito_pav), não em metros; confirmar a unidade no texto da lei.",
+  "Sem consulta lote -> setor ainda: a camada SETORES tem geometria (pode virar um comando 'zona' como o de SP).",
+  "TO, recuos e permeabilidade não estão na camada; dependem do texto da Lei 1.838 (arts. e Anexo).",
+  "Conferir a premissa 'art. 77 §1º da 1.838 (isenção de permeabilidade no Sítio Histórico)': a leitura parcial indicou que o art. 77 pode não ter §1º. O Centro Histórico é Setor 1 com subsetores Centro Antigo e Sítio Histórico (Plano Diretor, art. 2º, II, Anexo VI)."
+ ]
 }

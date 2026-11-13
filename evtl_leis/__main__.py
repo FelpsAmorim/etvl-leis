@@ -27,7 +27,9 @@ ROTULOS = {"ca_min": "CA mínimo", "ca_bas": "CA básico", "ca_max": "CA máximo
            "recuo_fundo_lat_acima_10m": "Recuo fundos/lat. acima de 10 m de altura",
            "cota_parte_m2": "Cota parte (m²/unidade)",
            "permeabilidade_ate_500": "Permeabilidade mín. (até 500 m²)",
-           "permeabilidade_acima_500": "Permeabilidade mín. (acima de 500 m²)"}
+           "permeabilidade_acima_500": "Permeabilidade mín. (acima de 500 m²)",
+           "gabarito_pav": "Gabarito (pavimentos)", "lote_min_m2": "Lote mínimo (m²)",
+           "testada_min_m": "Testada mínima (m)"}
 
 
 def _cidade_nome(slug):

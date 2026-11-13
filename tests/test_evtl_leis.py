@@ -107,3 +107,16 @@ class TestConfigs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestManaus(unittest.TestCase):
+    def test_setores_arcgis(self):
+        linhas = extrator.manaus_setores((FIX / "manaus_setores.json").read_text(encoding="utf-8"))
+        v = {(l["zona"], l["parametro"]): l["valor"] for l in linhas}
+        self.assertEqual(v[("Setor 05", "ca_max")], 3.0)
+        self.assertEqual(v[("Setor 05", "ca_bas")], 2.0)
+        self.assertEqual(v[("Setor 05", "gabarito_pav")], 8.0)
+        self.assertEqual(v[("Setor 05", "lote_min_m2")], 250.0)
+        self.assertEqual(v[("Subsetor Orla Oeste", "ca_max")], 4.8)
+        self.assertNotIn(("Subsetor Orla Oeste", "ca_bas"), v)
+        self.assertFalse(any(z.startswith("Setor None") for z, _ in v))
