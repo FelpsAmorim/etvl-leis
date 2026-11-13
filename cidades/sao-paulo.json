@@ -45,7 +45,7 @@
     "Quadro 3 vem do PDF de 2016. Lidos os arts. 1-41 da Lei 18.081/2024 e toda a 18.177/2024: nenhum muda valores do Quadro 3 (mudam regras de gabarito, recuo, TO e o mapa de zonas, ver 'regras'). Falta ler a 18.081 depois do art. 41 (página oficial corta no art. 71 §7º) para descartar de vez.",
     "Lei 18.209 citada nos laudos da Porto Seguro: não encontrada no site de legislação de SP (404). Confirmar número e assunto com o laudo/Danilo.",
     "Permeabilidade: depende do Perímetro de Qualificação Ambiental (Quadro 3A + Mapa 3), não da zona. Falta o leitor do Quadro 3A e o cruzamento lote -> PA.",
-    "Zona do lote: o conector GeoSampa do evtl_consulta.py usa a camada de 2016; trocar pela camada do Mapa 1 de 2024 (Lei 18.177).",
+    "Zona do lote: feito (python -m evtl_leis zona, camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada.",
     "Quadro 4 (usos permitidos) e sobreposições (ZEPEC, Operações Urbanas, tombamento) ainda não extraídos."
   ]
 }

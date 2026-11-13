@@ -10,6 +10,7 @@ Comandos:
   python -m evtl_leis avisos                       # avisos ainda não vistos
   python -m evtl_leis pendencias                   # o que falta por cidade
   python -m evtl_leis ler <url>                    # lê uma lei (HTML/PDF) e lista artigos e notas
+  python -m evtl_leis zona --cidade sao-paulo --sql 009.096.0000   # ou --endereco "Av Paulista" --numero 1578, ou --lat/--lon
   python -m evtl_leis exportar                     # gera cloudflare/d1_dados.sql e cloudflare/src/fontes.json
 """
 
@@ -17,13 +18,7 @@ import argparse
 import json
 import sys
 
-try:
-    import truststore
-    truststore.inject_into_ssl()
-except ImportError:
-    pass
-
-from . import base, consolidar, diagnostico, exportar, fontes, vigia
+from . import base, consolidar, diagnostico, exportar, fontes, lote, vigia
 
 ROTULOS = {"ca_min": "CA mínimo", "ca_bas": "CA básico", "ca_max": "CA máximo",
            "to_ate_500": "TO (lote até 500 m²)", "to_acima_500": "TO (lote acima de 500 m²)",
@@ -66,6 +61,14 @@ def main(argv=None):
     sub.add_parser("pendencias")
     e = sub.add_parser("exportar")
     e.add_argument("--pasta", default=str(consolidar.PASTA_CIDADES.parent / "cloudflare"))
+    z = sub.add_parser("zona", help="zona do lote pelo mapa vigente (hoje só São Paulo)")
+    z.add_argument("--cidade", default="sao-paulo", choices=["sao-paulo"])
+    z.add_argument("--sql", help="setor.quadra.lote-dígito")
+    z.add_argument("--endereco")
+    z.add_argument("--numero")
+    z.add_argument("--lat", type=float)
+    z.add_argument("--lon", type=float)
+    z.add_argument("--json", action="store_true")
     l = sub.add_parser("ler")
     l.add_argument("url")
     args = ap.parse_args(argv)
@@ -84,6 +87,30 @@ def main(argv=None):
         artigos, links = fontes.html_para_artigos(dados)
         print(json.dumps({"artigos": artigos, "anexos": fontes.anexos_na_pagina(links)},
                          ensure_ascii=False, indent=2))
+        return 0
+
+    if args.cmd == "zona":
+        if not (args.sql or args.endereco or (args.lat is not None and args.lon is not None)):
+            ap.error("informe --sql, --endereco ou --lat e --lon")
+        r = lote.zona(sql=args.sql, endereco=args.endereco, numero=args.numero, lat=args.lat, lon=args.lon)
+        if args.json:
+            print(json.dumps(r, ensure_ascii=False, indent=2))
+            return 0
+        l = r.get("lote")
+        if l:
+            print(f"Lote {l['sql']} (condomínio {l['condominio']}, {l['tipo']}) {l['endereco'] or ''}"
+                  f" — terreno {l['area_terreno_m2'] or '?'} m²")
+            if r.get("outros_lotes"):
+                print(f"  ({r['outros_lotes']} outro(s) lote(s) com o mesmo filtro; usei o primeiro fiscal)")
+        else:
+            print(r.get("aviso", ""))
+        for v in ("2024", "2016"):
+            zs = ", ".join(f"{z['zona']} ({z['fracao']:.0%})" for z in r[f"zonas_{v}"]) or "nenhuma"
+            print(f"Zona {v}: {zs}   [{r[f'fonte_{v}']['descricao']}; {r[f'fonte_{v}']['camada']}]")
+        if r.get("mudou_desde_2016"):
+            print("ATENÇÃO: a zona mudou em relação ao mapa de 2016.")
+        if r["zona"]:
+            print(f"Parâmetros: python -m evtl_leis consultar --cidade sao-paulo --zona {r['zona']}")
         return 0
 
     if args.cmd == "pendencias":

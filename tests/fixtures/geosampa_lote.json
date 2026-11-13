@@ -1,0 +1,6 @@
+{"lote": [{"type": "Feature", "properties": {"cd_setor_fiscal": "009", "cd_quadra_fiscal": "001", "cd_lote": "0000",
+   "cd_condominio": "05", "cd_digito_sql": null, "tx_tipo_lote": "FISCAL", "nm_logradouro_completo": "R SAMUEL DAS NEVES",
+   "cd_numero_porta": "74", "qt_area_terreno": 139},
+   "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [20, 0], [20, 10], [0, 10], [0, 0]]]}}],
+ "zona_2024": {"type": "Polygon", "coordinates": [[[0, 0], [15, 0], [15, 10], [0, 10], [0, 0]]]},
+ "zona_2024_b": {"type": "Polygon", "coordinates": [[[15, 0], [100, 0], [100, 100], [15, 100], [15, 0]]]}}
