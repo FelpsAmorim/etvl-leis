@@ -18,21 +18,28 @@ FIXAS = {
 }
 
 
+def _e_url(u):
+    return isinstance(u, str) and u.startswith(("http://", "https://"))
+
+
 def alvos():
+    """Só endereços da web: uma fonte citada por texto (ex.: 'DOM Natal 08/03/2022, p. 27-30',
+    transcrita em cidades/) não tem o que testar."""
     out = dict(FIXAS)
     for slug in consolidar.cidades_disponiveis():
         cfg = consolidar.carregar_cidade(slug)
         for n in cfg.get("normas", []):
-            if n.get("link"):
+            if _e_url(n.get("link")):
                 out[f"{cfg['cidade']}: {n['id']}"] = n["link"]
         for q in cfg.get("quadros", []):
-            out[f"{cfg['cidade']}: {q['rotulo']}"] = q["url"]
+            if _e_url(q.get("url")):
+                out[f"{cfg['cidade']}: {q['rotulo']}"] = q["url"]
     return out
 
 
 def testar(url, timeout=20):
-    req = urllib.request.Request(url, headers=fontes.UA, method="GET")
     try:
+        req = urllib.request.Request(url, headers=fontes.UA, method="GET")
         with urllib.request.urlopen(req, timeout=timeout) as r:
             r.read(512)
             return "ok", r.status

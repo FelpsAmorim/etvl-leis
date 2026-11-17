@@ -219,3 +219,16 @@ class TestNatalAnexo2(unittest.TestCase):
                 self.assertEqual(l["valor"], b, l["zona"])
             else:  # eixo: +50% sobre a bacia (art. 15 §4º), em passos de 0,5, teto 5,0
                 self.assertEqual(l["valor"], min(5.0, math.ceil(b * 3) / 2), l["zona"])
+
+
+class TestDiagnostico(unittest.TestCase):
+    def test_so_testa_enderecos_da_web(self):
+        from evtl_leis import diagnostico
+        alvos = diagnostico.alvos()
+        self.assertTrue(alvos)
+        self.assertTrue(all(u.startswith(("http://", "https://")) for u in alvos.values()))
+
+    def test_endereco_invalido_nao_quebra(self):
+        from evtl_leis import diagnostico
+        estado, _ = diagnostico.testar("DOM Natal 08/03/2022, p. 27-30")
+        self.assertEqual(estado, "falha")
