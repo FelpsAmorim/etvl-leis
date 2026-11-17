@@ -3,7 +3,7 @@
 //
 // Limite do plano free: 50 subrequests por chamada. Pior caso aqui: SP com lote em várias zonas
 // (1 lote + 1 zona + até 25 amostras + 1 de 2016 + 1 macroárea + 8 sobreposições = 37); Natal com coordenada = 18;
-// Manaus = até 7 (o endereço pode ir em duas tentativas).
+// Manaus = até 8 (o endereço pode ir em duas tentativas, mais a busca de subsetor a 30 m).
 
 const UA = { "User-Agent": "evtl-leis/0.2 (+consulta de legislacao urbanistica)" };
 
@@ -357,55 +357,79 @@ export function variantesEndereco(endereco) {
 
 const titulo = (s) => s.toLowerCase().replace(/(^|\s)(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
 
-export async function manaus({ lat, lon, cgl, endereco }, get = getJson) {
-  const res = { cidade: "Manaus", entrada: limpo({ lat, lon, cgl, endereco }) };
-  if (endereco) {
-    let c = null;
-    for (const tentativa of variantesEndereco(endereco)) {
-      const d = await arcgis(get, `${GEOCODE_MAO}/findAddressCandidates`, { SingleLine: tentativa, outSR: 4326, maxLocations: 1 }, "Manaus");
-      const x = (d.candidates || [])[0];
-      if (x && (x.score || 0) >= 80) { c = x; break; }
-    }
-    if (!c) throw new ErroFonte(`Endereço não encontrado no geocodificador de Manaus: ${endereco} (dica: números em algarismos, como 'Av. 7 de Setembro, 895')`);
-    [lat, lon] = [c.location.y, c.location.x];
-    res.endereco_encontrado = c.address;
-  }
-  const CAMPOS = "CGL,SETOR,QUADRA,LOTE";
+// iptu: o número de IPTU do imóvel, que a camada LOTES guarda no campo MATRICULA (AG 0230: IPTU 5341 -> CGL 0200420373).
+async function loteManaus(get, where, rotulo) {
+  const d = await arcgis(get, `${IMPLURB}/${CAMADAS_MAO.lotes}/query`, {
+    where, outFields: "CGL,SETOR,QUADRA,LOTE,MATRICULA,SHAPE.AREA", returnGeometry: "true", outSR: 4326,
+  }, "Manaus");
+  const fs = d.features || [];
+  if (!fs.length) throw new ErroFonte(`${rotulo} não encontrado na camada LOTES da IMPLURB`);
+  const anel = fs[0].geometry.rings[0];
+  return [fs[0].attributes, anel.reduce((s, p) => s + p[1], 0) / anel.length, anel.reduce((s, p) => s + p[0], 0) / anel.length];
+}
+
+export async function manaus({ lat, lon, cgl, endereco, iptu }, get = getJson) {
+  const res = { cidade: "Manaus", entrada: limpo({ lat, lon, cgl, iptu, endereco }) };
+  const avisos = [];
+  const CAMPOS = "CGL,SETOR,QUADRA,LOTE,MATRICULA,SHAPE.AREA";
   let lotes;
   if (cgl) {
-    const d = await arcgis(get, `${IMPLURB}/${CAMADAS_MAO.lotes}/query`, {
-      where: `CGL='${String(cgl).replace(/'/g, "")}'`, outFields: CAMPOS, returnGeometry: "true", outSR: 4326, returnCentroid: "true",
-    }, "Manaus");
-    const fs = d.features || [];
-    if (!fs.length) throw new ErroFonte(`CGL ${cgl} não encontrado na camada LOTES da IMPLURB`);
-    const anel = fs[0].geometry.rings[0];
-    lon = anel.reduce((s, p) => s + p[0], 0) / anel.length;
-    lat = anel.reduce((s, p) => s + p[1], 0) / anel.length;
-    lotes = [fs[0].attributes];
-  } else if (lat != null) {
-    lotes = await maoPorPonto(get, "lotes", lon, lat, CAMPOS);
-    if (!lotes.length) lotes = await maoPorPonto(get, "lotes", lon, lat, CAMPOS, 20);
+    let a;
+    [a, lat, lon] = await loteManaus(get, `CGL='${String(cgl).replace(/'/g, "")}'`, `CGL ${cgl}`);
+    lotes = [a];
+  } else if (iptu) {
+    const num = String(iptu).replace(/\D/g, "");
+    if (!num) throw new ErroEntrada("iptu deve ser um número");
+    let a;
+    [a, lat, lon] = await loteManaus(get, `MATRICULA=${parseInt(num, 10)}`, `IPTU ${iptu}`);
+    lotes = [a];
   } else {
-    throw new ErroEntrada("informe lat/lon, cgl ou endereco");
+    if (endereco) {
+      let c = null;
+      for (const tentativa of variantesEndereco(endereco)) {
+        const d = await arcgis(get, `${GEOCODE_MAO}/findAddressCandidates`, { SingleLine: tentativa, outSR: 4326, maxLocations: 1 }, "Manaus");
+        const x = (d.candidates || [])[0];
+        if (x && (x.score || 0) >= 80) { c = x; break; }
+      }
+      if (!c) throw new ErroFonte(`Endereço não encontrado no geocodificador de Manaus: ${endereco} (dica: números em algarismos, como 'Av. 7 de Setembro, 895')`);
+      [lat, lon] = [c.location.y, c.location.x];
+      res.endereco_encontrado = c.address;
+    }
+    if (lat == null) throw new ErroEntrada("informe lat/lon, cgl, iptu ou endereco");
+    lotes = await maoPorPonto(get, "lotes", lon, lat, CAMPOS);
+    if (!lotes.length) {
+      lotes = await maoPorPonto(get, "lotes", lon, lat, CAMPOS, 20);
+      if (lotes.length)
+        avisos.push(`O ponto caiu fora de lote (na rua); usei o lote mais próximo, CGL ${lotes[0].CGL}, de ${lotes.length} a menos de 20 m. ` +
+          "Pode ser o vizinho: confira pela área ou busque por iptu ou cgl.");
+    }
   }
   res.ponto = { lat, lon };
   if (lotes.length) {
     const l = lotes[0];
-    res.lote = { cgl: l.CGL ?? null, setor_fiscal: l.SETOR ?? null, quadra: l.QUADRA ?? null, lote: l.LOTE ?? null };
-    if (lotes.length > 1) res.aviso = `${lotes.length} lotes perto do ponto (o endereço caiu na rua); usei o primeiro. Confira o CGL.`;
+    res.lote = { cgl: l.CGL ?? null, setor_fiscal: l.SETOR ?? null, quadra: l.QUADRA ?? null, lote: l.LOTE ?? null,
+      iptu: l.MATRICULA ?? null, area_m2: l["SHAPE.AREA"] ? Math.round(l["SHAPE.AREA"] * 100) / 100 : null };
   }
-  const [setores, sub, bai] = await Promise.all([
+  const [setores, sub, bai, perto] = await Promise.all([
     maoPorPonto(get, "setores", lon, lat, "SETOR,BAIRRO"),
     maoPorPonto(get, "subsetores", lon, lat, "SETOR_"),
     maoPorPonto(get, "bairros", lon, lat, "NOME_BAIRR"),
+    maoPorPonto(get, "subsetores", lon, lat, "SETOR_", 30),
   ]);
   const zonas = [];
   if (setores[0]?.SETOR) zonas.push(`Setor ${setores[0].SETOR}`);
   if (sub[0]?.SETOR_) zonas.push(titulo(sub[0].SETOR_.trim())); // mesmo nome que o leitor manaus_setores grava
+  // subsetor a menos de 30 m: o lote pode estar na divisa (AG 0230: o laudo diz Sítio Histórico; a camada, não)
+  const proximos = [...new Set(perto.filter((x) => x.SETOR_).map((x) => titulo(x.SETOR_.trim())))].filter((n) => !zonas.includes(n)).sort();
+  for (const nome of proximos)
+    avisos.push(`O lote está a menos de 30 m do ${nome}, mas fora dele pela camada da IMPLURB. ` +
+      "Confira a divisa no Anexo da Lei 1.838/2014: se o lote estiver dentro, valem os parâmetros do subsetor.");
+  res.subsetores_proximos = proximos;
   res.bairro = bai[0]?.NOME_BAIRR ?? null;
   res.zonas = zonas;
   res.fonte = { camadas: ["setores", "subsetores", "lotes"].map((c) => `${IMPLURB}/${CAMADAS_MAO[c]}`), norma_id: "LEI_1838_2014" };
-  if (!zonas.length) res.aviso = "Ponto fora dos setores da IMPLURB (zona turística ou fora do perímetro urbano?).";
+  if (!zonas.length) avisos.push("Ponto fora dos setores da IMPLURB (zona turística ou fora do perímetro urbano?).");
+  res.avisos = avisos;
   return res;
 }
 
@@ -589,7 +613,7 @@ export async function buscar(db, p, get = getJson) {
     aplicarArcoTiete(r, a ? a === "sim" : null);
     avisosDeSobreposicao(r);
   } else if (slug === "manaus") {
-    r = await manaus({ lat, lon, cgl: g("cgl"), endereco: g("endereco") }, get);
+    r = await manaus({ lat, lon, cgl: g("cgl"), endereco: g("endereco"), iptu: g("iptu") }, get);
   } else {
     const nomes = (await db.prepare(`SELECT DISTINCT zona FROM parametros WHERE cidade='Natal'`).all()).results.map((x) => x.zona);
     r = await natal({ bairro: g("bairro"), bacia: g("bacia"), eixo: g("eixo"), lat, lon }, nomes, get);

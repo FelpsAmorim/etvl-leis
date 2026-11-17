@@ -239,3 +239,36 @@ test("arco_tiete inválido vira 400", async () => {
   const res = await worker.fetch(new Request("https://x/buscar?cidade=sao-paulo&sql=008.018.0069-2&arco_tiete=talvez"), { DB: db });
   assert.equal(res.status, 400);
 });
+
+// ---- AG 0230 (sondagem de 17/11/2026 na camada da IMPLURB) ----
+const loteAG = { CGL: "0200420373", SETOR: "02", QUADRA: "0042", LOTE: "0373", MATRICULA: 5341, "SHAPE.AREA": 1378.086664945 };
+const anelAG = [[-60.0231, -3.1343], [-60.0228, -3.1343], [-60.0228, -3.1346], [-60.0231, -3.1346]];
+function arcgisAG(u) {
+  const p = params(u);
+  if (u.includes("findAddressCandidates"))
+    return { candidates: [{ address: "895 AVENIDA 7 DE SETEMBRO, CENTRO, MANAUS", score: 90.22, location: { x: -60.0223, y: -3.1346 } }] };
+  if (u.includes("/MapServer/3/query")) {
+    if (p.where) return { features: p.where === "MATRICULA=5341" ? [{ attributes: loteAG, geometry: { rings: [anelAG] } }] : [] };
+    if (!p.distance) return { features: [] };
+    return { features: [{ attributes: { CGL: "0200420254", SETOR: "02", QUADRA: "0042", LOTE: "0254", MATRICULA: 5333, "SHAPE.AREA": 206.1 } }] };
+  }
+  if (u.includes("/MapServer/5/query")) return { features: [{ attributes: { SETOR: "01", BAIRRO: "CENTRO" } }] };
+  if (u.includes("/MapServer/4/query")) return { features: p.distance ? [{ attributes: { SETOR_: "SUBSETOR SÍTIO HISTÓRICO" } }] : [] };
+  if (u.includes("/MapServer/6/query")) return { features: [{ attributes: { NOME_BAIRR: "CENTRO" } }] };
+  return { features: [] };
+}
+
+test("Manaus por IPTU acha o lote do AG 0230 e avisa da divisa do Sítio Histórico", async () => {
+  const r = await buscar(db, { cidade: "manaus", iptu: "5341" }, arcgisAG);
+  assert.equal(r.lote.cgl, "0200420373");
+  assert.equal(r.lote.area_m2, 1378.09);
+  assert.deepEqual(r.zonas, ["Setor 01"]);
+  assert.deepEqual(r.subsetores_proximos, ["Subsetor Sítio Histórico"]);
+  assert.ok(r.avisos.some((a) => a.includes("menos de 30 m do Subsetor Sítio Histórico")));
+});
+
+test("Manaus: endereço na rua avisa que o lote pode ser o vizinho", async () => {
+  const r = await buscar(db, { cidade: "manaus", endereco: "Avenida Sete de Setembro, 895" }, arcgisAG);
+  assert.equal(r.lote.cgl, "0200420254");
+  assert.ok(r.avisos.some((a) => a.includes("caiu fora de lote")));
+});

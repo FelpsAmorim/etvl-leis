@@ -34,7 +34,7 @@ Mostra, fonte por fonte, o que a máquina alcança. No ambiente de nuvem onde is
 | Cidade | Entrada | Fonte da zona | O que o usuário ainda informa |
 |---|---|---|---|
 | São Paulo | SQL, endereço + número, lat/lon | GeoSampa: Mapa 1 da Lei 18.177/2024 (e o de 2016, para comparar) | nada |
-| Manaus | endereço, CGL, lat/lon | ArcGIS da IMPLURB: setores, subsetores, lotes, bairros | nada |
+| Manaus | IPTU, CGL, endereço, lat/lon | ArcGIS da IMPLURB: setores, subsetores, lotes, bairros | nada |
 | Natal | bairro/bacia/eixo, ou lat/lon | portal ArcGIS da SEMURB: bairro e áreas especiais (ZA, ZPAs, AEIS...) | bacia de esgotamento e eixo (Mapas 2/2A sem serviço aberto) |
 
 Lote em mais de uma zona (SP): a busca estima a fração de cada zona por amostragem de pontos.
@@ -53,7 +53,7 @@ Lote de SP em mais de uma zona: `aplicaveis` vem vazio (`null`) e a resposta avi
 
 **Sobreposições (SP).** A busca lista, em `sobreposicoes` e nos avisos, o que o GeoSampa publica sobre o lote: área envoltória (CONDEPHAAT, CONPRESP, IPHAN), bem tombado (pelo SQL do próprio lote), operação urbana, AIU e Requalifica Centro. Elas não mudam os números do Quadro 3, mas condicionam o projeto. A ZEPEC ainda não tem camada.
 
-**Manaus.** O geocodificador da prefeitura escreve datas de rua em algarismos ("Avenida 7 de Setembro"); a busca tenta as duas formas.
+**Manaus.** O geocodificador da prefeitura escreve datas de rua em algarismos ("Avenida 7 de Setembro"); a busca tenta as duas formas. O ponto do endereço costuma cair na rua: a busca usa o lote mais próximo e avisa, porque pode ser o vizinho. O jeito certo é `--iptu` (o número do IPTU, que a camada guarda no campo MATRICULA) ou `--cgl`. Quando o lote fica a menos de 30 m de um subsetor, a resposta avisa para conferir a divisa.
 
 `--data AAAA-MM-DD` (em `buscar` e `consultar`) devolve os parâmetros na versão que valia naquela data. Use a data do laudo ao comparar com os EVTLs do gabarito: um laudo de 2022 em SP seguiu a Lei 16.402 antes das mudanças de 2024. As regras textuais ainda não têm data de vigência; a resposta avisa.
 

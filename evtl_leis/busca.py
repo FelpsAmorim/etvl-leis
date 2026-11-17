@@ -75,34 +75,50 @@ def geocodificar_manaus(endereco, get=arcgis):
                     "(dica: números em algarismos, como 'Av. 7 de Setembro, 895')")
 
 
-def manaus(lat=None, lon=None, cgl=None, endereco=None, get=arcgis):
+def _lote_manaus(where, rotulo, get):
+    """Lote da camada LOTES por um filtro (CGL ou IPTU); devolve (atributos, lat, lon do centro)."""
+    d = get(f"{IMPLURB}/{CAMADAS_MAO['lotes']}/query",
+            {"where": where, "outFields": "CGL,SETOR,QUADRA,LOTE,MATRICULA,SHAPE.AREA",
+             "returnGeometry": "true", "outSR": 4326})
+    fs = d.get("features", [])
+    if not fs:
+        raise ErroFonte(f"{rotulo} não encontrado na camada LOTES da IMPLURB")
+    anel = fs[0]["geometry"]["rings"][0]
+    return (fs[0]["attributes"], sum(p[1] for p in anel) / len(anel), sum(p[0] for p in anel) / len(anel))
+
+
+def manaus(lat=None, lon=None, cgl=None, endereco=None, iptu=None, get=arcgis):
+    """iptu: o número de IPTU do imóvel, que a camada LOTES guarda no campo MATRICULA
+    (conferido no AG 0230: IPTU 5341 -> CGL 0200420373)."""
     res = {"cidade": "Manaus", "entrada": {k: v for k, v in
-           {"lat": lat, "lon": lon, "cgl": cgl, "endereco": endereco}.items() if v is not None}}
-    if endereco:
-        lat, lon, res["endereco_encontrado"] = geocodificar_manaus(endereco, get)
+           {"lat": lat, "lon": lon, "cgl": cgl, "iptu": iptu, "endereco": endereco}.items() if v is not None}}
+    avisos = []
     if cgl:
-        d = get(f"{IMPLURB}/{CAMADAS_MAO['lotes']}/query",
-                {"where": f"CGL='{str(cgl).replace(chr(39), '')}'", "outFields": "CGL,SETOR,QUADRA,LOTE",
-                 "returnGeometry": "true", "outSR": 4326, "returnCentroid": "true"})
-        fs = d.get("features", [])
-        if not fs:
-            raise ErroFonte(f"CGL {cgl} não encontrado na camada LOTES da IMPLURB")
-        anel = fs[0]["geometry"]["rings"][0]
-        lon = sum(p[0] for p in anel) / len(anel)
-        lat = sum(p[1] for p in anel) / len(anel)
-        lotes = [fs[0]["attributes"]]
-    elif lat is not None:
-        lotes = _por_ponto("lotes", lon, lat, "CGL,SETOR,QUADRA,LOTE", get) or \
-            _por_ponto("lotes", lon, lat, "CGL,SETOR,QUADRA,LOTE", get, distancia=20)
+        a, lat, lon = _lote_manaus(f"CGL='{str(cgl).replace(chr(39), '')}'", f"CGL {cgl}", get)
+        lotes = [a]
+    elif iptu:
+        num = "".join(ch for ch in str(iptu) if ch.isdigit())
+        if not num:
+            raise ValueError("IPTU deve ser um número")
+        a, lat, lon = _lote_manaus(f"MATRICULA={int(num)}", f"IPTU {iptu}", get)
+        lotes = [a]
     else:
-        raise ValueError("informe lat/lon, cgl ou endereço")
+        if endereco:
+            lat, lon, res["endereco_encontrado"] = geocodificar_manaus(endereco, get)
+        if lat is None:
+            raise ValueError("informe lat/lon, cgl, iptu ou endereço")
+        lotes = _por_ponto("lotes", lon, lat, "CGL,SETOR,QUADRA,LOTE,MATRICULA,SHAPE.AREA", get)
+        if not lotes:
+            lotes = _por_ponto("lotes", lon, lat, "CGL,SETOR,QUADRA,LOTE,MATRICULA,SHAPE.AREA", get, distancia=20)
+            if lotes:
+                avisos.append(f"O ponto caiu fora de lote (na rua); usei o lote mais próximo, CGL {lotes[0].get('CGL')}, "
+                              f"de {len(lotes)} a menos de 20 m. Pode ser o vizinho: confira pela área ou busque por --iptu ou --cgl.")
     res["ponto"] = {"lat": lat, "lon": lon}
     if lotes:
-        res["lote"] = {"cgl": lotes[0].get("CGL"), "setor_fiscal": lotes[0].get("SETOR"),
-                       "quadra": lotes[0].get("QUADRA"), "lote": lotes[0].get("LOTE")}
-        if len(lotes) > 1:
-            res["aviso"] = (f"{len(lotes)} lotes perto do ponto (o endereço caiu na rua); usei o primeiro. "
-                            "Confira o CGL.")
+        l0 = lotes[0]
+        res["lote"] = {"cgl": l0.get("CGL"), "setor_fiscal": l0.get("SETOR"), "quadra": l0.get("QUADRA"),
+                       "lote": l0.get("LOTE"), "iptu": l0.get("MATRICULA"),
+                       "area_m2": round(l0["SHAPE.AREA"], 2) if l0.get("SHAPE.AREA") else None}
     setores = _por_ponto("setores", lon, lat, "SETOR,BAIRRO", get)
     sub = _por_ponto("subsetores", lon, lat, "SETOR_", get)
     bai = _por_ponto("bairros", lon, lat, "NOME_BAIRR", get)
@@ -111,12 +127,20 @@ def manaus(lat=None, lon=None, cgl=None, endereco=None, get=arcgis):
         zonas.append(f"Setor {setores[0]['SETOR']}")
     if sub and sub[0].get("SETOR_"):
         zonas.append(sub[0]["SETOR_"].strip().title())  # mesmo nome que o leitor manaus_setores grava
+    # subsetor a menos de 30 m: o lote pode estar na divisa (AG 0230: o laudo diz Sítio Histórico; a camada, não)
+    perto = {x["SETOR_"].strip().title() for x in _por_ponto("subsetores", lon, lat, "SETOR_", get, distancia=30)
+             if x.get("SETOR_")} - set(zonas)
+    for nome in sorted(perto):
+        avisos.append(f"O lote está a menos de 30 m do {nome}, mas fora dele pela camada da IMPLURB. "
+                      "Confira a divisa no Anexo da Lei 1.838/2014: se o lote estiver dentro, valem os parâmetros do subsetor.")
+    res["subsetores_proximos"] = sorted(perto)
     res["bairro"] = bai[0]["NOME_BAIRR"] if bai else None
     res["zonas"] = zonas
     res["fonte"] = {"camadas": [f"{IMPLURB}/{CAMADAS_MAO[c]}" for c in ("setores", "subsetores", "lotes")],
                     "norma_id": "LEI_1838_2014"}
     if not zonas:
-        res["aviso"] = "Ponto fora dos setores da IMPLURB (zona turística ou fora do perímetro urbano?)."
+        avisos.append("Ponto fora dos setores da IMPLURB (zona turística ou fora do perímetro urbano?).")
+    res["avisos"] = avisos
     return res
 
 
@@ -228,7 +252,7 @@ def buscar(con, cidade, data=None, **kw):
         aplicar_arco_tiete(r, kw.get("arco_tiete"))
         avisos_de_sobreposicao(r)
     elif cidade == "manaus":
-        r = manaus(lat=kw.get("lat"), lon=kw.get("lon"), cgl=kw.get("cgl"), endereco=kw.get("endereco"),
+        r = manaus(lat=kw.get("lat"), lon=kw.get("lon"), cgl=kw.get("cgl"), endereco=kw.get("endereco"), iptu=kw.get("iptu"),
                    **({"get": kw["get"]} if kw.get("get") else {}))
     elif cidade == "natal":
         r = natal(con, bairro=kw.get("bairro"), bacia=kw.get("bacia"), eixo=kw.get("eixo"),
