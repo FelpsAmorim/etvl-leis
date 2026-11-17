@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
-import { buscar, latlonParaUtm23s, lerSql, normalizarLogradouro, ErroEntrada } from "../src/busca.js";
+import { buscar, aplicaveis, latlonParaUtm23s, lerSql, normalizarLogradouro, ErroEntrada, ErroFonte } from "../src/busca.js";
 import worker from "../src/index.js";
 
 const raiz = new URL("../", import.meta.url);
@@ -60,8 +60,20 @@ function falsoGeosampa(u) {
     if (m) return { features: [z(Number(m[1]) < 10 ? "ZM" : "ZEU")] };
     return { features: [z("ZM"), z("ZEU")] };
   }
+  if (camada === "pde_macroarea_lei_18209") return { features: [{ properties: { nm: "Macroárea de Urbanização Consolidada" } }] };
   return { features: [z("ZEU")] }; // 2016: tudo ZEU
 }
+
+// Lote inteiro em ZEM, dentro ou fora do Arco Tietê (null: camada fora do ar)
+const geosampaZem = (macro) => (u) => {
+  const camada = params(u).typeNames.replace("geoportal:", "");
+  if (camada === "lote_cidadao") return falsoGeosampa(u);
+  if (camada === "pde_macroarea_lei_18209") {
+    if (macro === null) throw new ErroFonte("fora do ar");
+    return { features: [{ properties: { nm_macroarea: macro } }] };
+  }
+  return { features: [{ properties: { cd_zoneamento_perimetro: "ZEM", tx_zoneamento_perimetro: "ZEM" } }] };
+};
 
 // ---- Manaus ----
 test("Manaus por endereço: geocodifica, cai na rua e acha o lote a 20 m", async () => {
@@ -133,4 +145,58 @@ test("utilitários batem com o Python", () => {
   assert.equal(normalizarLogradouro("Rua Samuel das Neves"), "SAMUEL DAS NEVES");
   const [x, y] = latlonParaUtm23s(-23.5505, -46.6333); // Praça da Sé
   assert.ok(Math.abs(x - 333_400) < 1_000 && Math.abs(y - 7_394_500) < 1_000, `${x} ${y}`);
+});
+
+// ---- precedência e Arco Tietê (comparação com os laudos da Legali, 17/11/2026) ----
+test("SP: ZEM no Arco Tietê tem CA máx. 4,0 (Porto Seguro)", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("MEM - Subsetor Arco Tietê"));
+  assert.equal(r.arco_tiete, true);
+  assert.deepEqual(r.zonas, ["ZEM", "ZEM / Arco Tietê"]);
+  assert.equal(r.aplicaveis.ca_max.valor, 4.0);
+  assert.deepEqual(r.aplicaveis.ca_max.substitui, [{ zona: "ZEM", valor: 2.0 }]);
+  assert.equal(r.aplicaveis.to_acima_500.valor, 0.7);
+  assert.ok(r.regras.some((g) => g.norma_id === "RES_CTLU_004_2018"));
+});
+
+test("SP: fora do Arco Tietê o CA máx. da ZEM fica 2,0", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("Macroárea de Urbanização Consolidada"));
+  assert.equal(r.arco_tiete, false);
+  assert.equal(r.aplicaveis.ca_max.valor, 2.0);
+});
+
+test("SP: camada fora do ar avisa, e arco_tiete=sim resolve", async () => {
+  let r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem(null));
+  assert.equal(r.arco_tiete, null);
+  assert.ok(r.avisos.some((a) => a.includes("arco_tiete=sim")));
+  r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2", arco_tiete: "sim" }, geosampaZem(null));
+  assert.equal(r.aplicaveis.ca_max.valor, 4.0);
+  assert.equal(r.arco_tiete_origem, "informado pelo usuário");
+});
+
+test("SP: lote em duas zonas não mistura parâmetros", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "009.096.0000" }, falsoGeosampa);
+  assert.equal(r.aplicaveis, null);
+});
+
+test("Manaus: subsetor prevalece sobre o setor (AG 0230, Sítio Histórico)", () => {
+  const p = (parametro, valor) => ({ parametro, valor, norma_id: "N", dispositivo: "d", nota: null, conferido: 0 });
+  const a = aplicaveis("manaus", ["Setor 01", "Subsetor Sítio Histórico"], {
+    "Setor 01": [p("ca_bas", 2.0), p("ca_max", 4.0), p("gabarito_pav", 16.0)],
+    "Subsetor Sítio Histórico": [p("ca_max", 2.0), p("gabarito_pav", 3.0)],
+  });
+  assert.equal(a.ca_max.valor, 2.0);
+  assert.equal(a.gabarito_pav.valor, 3.0);
+  assert.equal(a.ca_bas.herdado, true);
+});
+
+test("Natal: eixo prevalece (SmartFit, CA aplicável 4,0)", async () => {
+  const r = await buscar(db, { cidade: "natal", bairro: "capim macio", bacia: "ms", eixo: "roberto freire" }, falsoArcgis);
+  assert.equal(r.aplicaveis.ca_max.valor, 4.0);
+  assert.equal(r.aplicaveis.to_acima_500.valor, 0.8);
+  assert.equal(r.aplicaveis.gabarito_m.valor, 140);
+});
+
+test("arco_tiete inválido vira 400", async () => {
+  const res = await worker.fetch(new Request("https://x/buscar?cidade=sao-paulo&sql=008.018.0069-2&arco_tiete=talvez"), { DB: db });
+  assert.equal(res.status, 400);
 });

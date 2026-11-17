@@ -199,6 +199,29 @@ def zonas_em(geom_ou_ponto, versao="2024", get=wfs):
                   key=lambda z: -z["fracao"])
 
 
+# Subsetor Arco Tietê da Macroárea de Estruturação Metropolitana (MEM). O SISZON cita
+# "MA 0009 - L 18.209/2024"; a camada abaixo é a do Mapa 2 do PDE na redação da Lei 18.209.
+# O nome dos campos não foi conferido, então a busca procura "Arco Tietê" em qualquer campo de texto.
+CAMADA_MACROAREA = "pde_macroarea_lei_18209"
+ALVO_ARCO_TIETE = "ARCO TIETE"
+
+
+def _sem_acento(s):
+    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().upper()
+
+
+def arco_tiete(geom_ou_ponto, get=wfs):
+    """True/False: o lote toca o Subsetor Arco Tietê. None: a camada não respondeu como esperado."""
+    alvo = (f"POINT({geom_ou_ponto[0]:.3f} {geom_ou_ponto[1]:.3f})" if isinstance(geom_ou_ponto, tuple)
+            else wkt(geom_ou_ponto))
+    try:
+        feats = get(CAMADA_MACROAREA, f"INTERSECTS(ge_poligono, {alvo})", None)
+    except ErroFonte:
+        return None
+    textos = [v for f in feats for v in (f.get("properties") or {}).values() if isinstance(v, str)]
+    return any(ALVO_ARCO_TIETE in _sem_acento(t) for t in textos)
+
+
 def zona(sql=None, endereco=None, numero=None, lat=None, lon=None, comparar_2016=True, get=wfs):
     x = y = None
     if lat is not None:
@@ -234,4 +257,5 @@ def zona(sql=None, endereco=None, numero=None, lat=None, lon=None, comparar_2016
         z16 = [z["zona"] for z in res["zonas_2016"]]
         res["mudou_desde_2016"] = z24 != z16
     res["zona"] = res["zonas_2024"][0]["zona"] if res["zonas_2024"] else None
+    res["arco_tiete"] = arco_tiete(alvo, get)
     return res

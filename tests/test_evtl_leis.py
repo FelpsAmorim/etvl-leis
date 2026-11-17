@@ -79,7 +79,8 @@ class TestConsolidacao(unittest.TestCase):
             r = consolidar.atualizar(self.con, "sao-paulo", origem_local=locais, log=lambda *a: None)
         self.assertEqual(r["erros"], [])
         # Quadro 3 (fixture) + 3 PAs × 9 + 11 zonas × 2 (nota a do 3A) + 7 alterações da Lei 18.081
-        self.assertEqual(r["novo"], 70 + 27 + 22 + 7)
+        # + 1 manual (CA máx. 4,0 da ZEM no Arco Tietê)
+        self.assertEqual(r["novo"], 70 + 27 + 22 + 7 + 1)
         zem = {x["parametro"]: x for x in base.vigente(self.con, "São Paulo", "ZEM")}
         self.assertEqual(zem["ca_max"]["valor"], 2.0)
         self.assertEqual(zem["ca_max"]["norma_id"], "LEI_16402_2016")

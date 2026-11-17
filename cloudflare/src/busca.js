@@ -2,7 +2,7 @@
 // Mesma lógica de evtl_leis/busca.py e evtl_leis/lote.py (a referência é o Python; mantenha os dois iguais).
 //
 // Limite do plano free: 50 subrequests por chamada. Pior caso aqui: SP com lote em várias zonas
-// (1 lote + 1 zona + até 25 amostras + 1 de 2016 = 28); Natal com coordenada = 18; Manaus = 6.
+// (1 lote + 1 zona + até 25 amostras + 1 de 2016 + 1 Arco Tietê = 29); Natal com coordenada = 18; Manaus = 6.
 
 const UA = { "User-Agent": "evtl-leis/0.2 (+consulta de legislacao urbanistica)" };
 
@@ -159,6 +159,37 @@ async function zonasEm(get, alvo, versao, comFracao = true) {
     .sort((a, b) => b.fracao - a.fracao);
 }
 
+// Subsetor Arco Tietê da MEM (SISZON: "MA 0009 - L 18.209/2024"). Campos da camada não conferidos:
+// procura "Arco Tietê" em qualquer campo de texto. null = a camada não respondeu.
+const CAMADA_MACROAREA = "pde_macroarea_lei_18209";
+
+async function arcoTiete(get, alvo) {
+  const geo = Array.isArray(alvo) ? ponto(...alvo) : wkt(alvo);
+  let fs;
+  try {
+    fs = await wfs(get, CAMADA_MACROAREA, `INTERSECTS(ge_poligono, ${geo})`);
+  } catch (e) {
+    if (e instanceof ErroFonte) return null;
+    throw e;
+  }
+  return fs.some((f) => Object.values(f.properties || {}).some((v) => typeof v === "string" && semAcento(v).includes("ARCO TIETE")));
+}
+
+export function aplicarArcoTiete(r, forcar) {
+  if (forcar != null) {
+    r.arco_tiete = forcar;
+    r.arco_tiete_origem = "informado pelo usuário";
+  } else if (r.arco_tiete == null) {
+    r.arco_tiete_origem = "não verificado";
+    if (r.zonas.includes("ZEM"))
+      (r.avisos ??= []).push("Não deu para verificar se o lote está no Subsetor Arco Tietê (camada pde_macroarea_lei_18209). " +
+        "Se estiver, o CA máximo da ZEM é 4,0 (Res. CTLU 004/2018): use arco_tiete=sim.");
+  } else {
+    r.arco_tiete_origem = "camada pde_macroarea_lei_18209 (campos não conferidos)";
+  }
+  if (r.arco_tiete) r.zonas = r.zonas.flatMap((z) => (z === "ZEM" ? ["ZEM", "ZEM / Arco Tietê"] : [z]));
+}
+
 export async function saoPaulo({ sql, endereco, numero, lat, lon }, get = getJson) {
   let x, y, cql;
   if (lat != null) [x, y] = latlonParaUtm23s(lat, lon);
@@ -196,7 +227,8 @@ export async function saoPaulo({ sql, endereco, numero, lat, lon }, get = getJso
     throw new ErroFonte("Lote não encontrado no GeoSampa (lote_cidadao). Unidades de condomínio: use o endereço ou a coordenada do terreno.");
   }
   // 2016 só lista as zonas (sem fração) para caber no limite de subrequests
-  const [z24, z16] = await Promise.all([zonasEm(get, alvo, 2024), zonasEm(get, alvo, 2016, false)]);
+  const [z24, z16, arco] = await Promise.all([zonasEm(get, alvo, 2024), zonasEm(get, alvo, 2016, false), arcoTiete(get, alvo)]);
+  res.arco_tiete = arco;
   for (const [v, zs] of [[2024, z24], [2016, z16]]) {
     const cfg = CAMADAS_ZONA[v];
     res[`zonas_${v}`] = zs;
@@ -365,6 +397,41 @@ export async function natal({ bairro, bacia, eixo, lat, lon }, nomes, get = getJ
   return res;
 }
 
+// ---------------- precedência: qual zona vale para cada parâmetro ----------------
+
+// Ordem do geral para o específico: o nível maior prevalece. Igual a _nivel em busca.py.
+export function nivel(slug, zona) {
+  if (slug === "sao-paulo") return zona.includes(" / ") ? 1 : 0;
+  if (slug === "manaus") return zona.startsWith("Subsetor") ? 1 : 0;
+  if (slug === "natal") {
+    if (zona === "Município (geral)") return 0;
+    if (zona.startsWith("Eixo ")) return 4;
+    if (zona.startsWith("Bacia ")) return 2;
+    if (zona.startsWith("Bairro ")) return zona.includes(" / Bacia ") ? 3 : 1;
+  }
+  return 0;
+}
+
+// {parametro: valor aplicável ao lote}; null quando o lote de SP cai em mais de uma zona base.
+export function aplicaveis(slug, zonas, parametros) {
+  if (!zonas.length) return {};
+  if (slug === "sao-paulo" && zonas.filter((z) => nivel(slug, z) === 0).length > 1) return null;
+  const out = {};
+  const ordem = zonas.map((z, i) => [z, i]).sort((a, b) => nivel(slug, a[0]) - nivel(slug, b[0]) || a[1] - b[1]).map((x) => x[0]);
+  for (const z of ordem)
+    for (const p of parametros[z] || []) {
+      const item = { valor: p.valor, zona: z, norma_id: p.norma_id, dispositivo: p.dispositivo, nota: p.nota, conferido: p.conferido };
+      const ant = out[p.parametro];
+      if (ant) item.substitui = [...(ant.substitui || []), { zona: ant.zona, valor: ant.valor }];
+      out[p.parametro] = item;
+    }
+  if (slug === "manaus") {
+    const topo = Math.max(...zonas.map((z) => nivel(slug, z)));
+    for (const v of Object.values(out)) if (nivel(slug, v.zona) < topo) v.herdado = true;
+  }
+  return out;
+}
+
 // ---------------- D1 ----------------
 
 // Parâmetros vigentes hoje, ou numa data (AAAA-MM-DD) — útil para comparar com laudos antigos.
@@ -420,7 +487,10 @@ export async function buscar(db, p, get = getJson) {
 
   let r;
   if (slug === "sao-paulo") {
+    const a = String(g("arco_tiete") ?? "").toLowerCase();
+    if (a && !["sim", "nao", "não"].includes(a)) throw new ErroEntrada("arco_tiete deve ser sim ou nao");
     r = await saoPaulo({ sql: g("sql"), endereco: g("endereco"), numero: g("numero"), lat, lon }, get);
+    aplicarArcoTiete(r, a ? a === "sim" : null);
   } else if (slug === "manaus") {
     r = await manaus({ lat, lon, cgl: g("cgl"), endereco: g("endereco") }, get);
   } else {
@@ -430,6 +500,9 @@ export async function buscar(db, p, get = getJson) {
   const cidade = CIDADES[slug];
   r.parametros = await parametrosDe(db, cidade, r.zonas, data);
   r.regras = await regrasDe(db, cidade, r.zonas);
+  r.aplicaveis = aplicaveis(slug, r.zonas, r.parametros);
+  if (r.aplicaveis === null)
+    (r.avisos ??= []).push("Lote em mais de uma zona: veja os parâmetros de cada zona (a parte de cada uma está em zonas_2024).");
   if (data) {
     r.data_referencia = data;
     r.aviso_data = "Parâmetros na versão vigente nessa data. As regras textuais não têm data de vigência na base: confira se já valiam.";

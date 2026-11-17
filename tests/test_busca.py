@@ -95,3 +95,94 @@ class TestDataDeReferencia(unittest.TestCase):
             self.assertEqual(v("2024-01-19"), [0.5])
             self.assertEqual(v("2010-01-01"), [])
             con.close()
+
+
+class TestPrecedencia(unittest.TestCase):
+    """Correções vindas da comparação com os laudos da Legali (17/11/2026)."""
+
+    def _p(self, parametro, valor, norma="N"):
+        return {"parametro": parametro, "valor": valor, "norma_id": norma, "dispositivo": "d", "nota": None, "conferido": 0}
+
+    def test_manaus_subsetor_prevalece(self):
+        # AG 0230: Sítio Histórico tem CA máx. 2 e 3 pavimentos; o Setor 01 tem 4,0 e 16
+        ps = {"Setor 01": [self._p("ca_bas", 2.0), self._p("ca_max", 4.0), self._p("gabarito_pav", 16.0)],
+              "Subsetor Sítio Histórico": [self._p("ca_max", 2.0), self._p("gabarito_pav", 3.0)]}
+        a = busca.aplicaveis("manaus", ["Setor 01", "Subsetor Sítio Histórico"], ps)
+        self.assertEqual(a["ca_max"]["valor"], 2.0)
+        self.assertEqual(a["ca_max"]["zona"], "Subsetor Sítio Histórico")
+        self.assertEqual(a["ca_max"]["substitui"], [{"zona": "Setor 01", "valor": 4.0}])
+        self.assertEqual(a["gabarito_pav"]["valor"], 3.0)
+        self.assertTrue(a["ca_bas"]["herdado"])
+        self.assertNotIn("herdado", a["ca_max"])
+
+    def test_natal_eixo_prevalece_sobre_bacia_e_bairro(self):
+        ps = {"Bairro CAPIM MACIO": [self._p("ca_max", 5.0)], "Bacia MS": [self._p("ca_max", 2.5)],
+              "Bairro CAPIM MACIO / Bacia MS": [self._p("ca_max", 2.5)],
+              "Eixo AVENIDA ENGENHEIRO ROBERTO FREIRE / Bacia MS": [self._p("ca_max", 4.0)],
+              "Município (geral)": [self._p("ca_bas", 1.0), self._p("to_acima_500", 0.8)]}
+        a = busca.aplicaveis("natal", list(ps), ps)
+        self.assertEqual(a["ca_max"]["valor"], 4.0)  # SmartFit: CA aplicável 4,0
+        self.assertEqual(a["to_acima_500"]["valor"], 0.8)
+        self.assertNotIn("herdado", a["to_acima_500"])
+
+    def test_sp_lote_em_duas_zonas_nao_mistura(self):
+        self.assertIsNone(busca.aplicaveis("sao-paulo", ["ZM", "ZEU"], {"ZM": [], "ZEU": []}))
+
+
+class TestArcoTiete(unittest.TestCase):
+    """Porto Seguro (jun/2026): ZEM no Subsetor Arco Tietê tem CA máx. 4,0 (Res. CTLU 004/2018)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.con = base.abrir(str(Path(self.tmp.name) / "t.db"))
+        kw = dict(norma_id="LEI_16402_2016", dispositivo="Quadro 3", fonte="t", origem="extrator", vigente_desde="2016-03-23")
+        base.gravar_parametro(self.con, "São Paulo", "ZEM", "ca_max", 2.0, **kw)
+        base.gravar_parametro(self.con, "São Paulo", "ZEM", "to_acima_500", 0.7, **kw)
+        cfg = consolidar.carregar_cidade("sao-paulo")
+        for m in cfg["manuais"]:
+            base.gravar_parametro(self.con, "São Paulo", m["zona"], m["parametro"], m["valor"], norma_id=m["norma"],
+                                  dispositivo=m["dispositivo"], fonte=m["fonte"], vigente_desde=m["vigente_desde"],
+                                  origem="manual")
+
+    def tearDown(self):
+        self.con.close()
+        self.tmp.cleanup()
+
+    @staticmethod
+    def geosampa(macroarea):
+        quad = {"type": "Polygon", "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]}
+
+        def get(camada, cql, campos=None, limite=20):
+            if camada == "lote_cidadao":
+                return [{"properties": {"cd_setor_fiscal": "008", "cd_quadra_fiscal": "018", "cd_lote": "0069",
+                                        "tx_tipo_lote": "FISCAL"}, "geometry": quad}]
+            if camada.startswith("perimetro_zona") or camada.startswith("zoneamento_2016"):
+                return [{"properties": {"cd_zoneamento_perimetro": "ZEM", "tx_zoneamento_perimetro": "ZEM"}}]
+            if camada == "pde_macroarea_lei_18209":
+                if macroarea is None:
+                    raise busca.ErroFonte("camada fora do ar")
+                return [{"properties": {"nm_macroarea": macroarea}}]
+            return []
+        return get
+
+    def test_dentro_do_arco_tiete(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2",
+                         get=self.geosampa("MEM - Setor Orla Ferroviária e Fluvial - Subsetor Arco Tietê"))
+        self.assertTrue(r["arco_tiete"])
+        self.assertEqual(r["zonas"], ["ZEM", "ZEM / Arco Tietê"])
+        self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 4.0)
+        self.assertEqual(r["aplicaveis"]["ca_max"]["substitui"], [{"zona": "ZEM", "valor": 2.0}])
+        self.assertEqual(r["aplicaveis"]["to_acima_500"]["valor"], 0.7)
+
+    def test_fora_do_arco_tiete(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa("Macroárea de Urbanização Consolidada"))
+        self.assertFalse(r["arco_tiete"])
+        self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 2.0)
+
+    def test_camada_fora_do_ar_avisa_e_aceita_o_usuario(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa(None))
+        self.assertIsNone(r["arco_tiete"])
+        self.assertTrue(any("arco_tiete=sim" in a for a in r["avisos"]))
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa(None), arco_tiete=True)
+        self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 4.0)
+        self.assertEqual(r["arco_tiete_origem"], "informado pelo usuário")
