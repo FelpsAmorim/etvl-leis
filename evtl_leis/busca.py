@@ -42,12 +42,37 @@ def _por_ponto(camada, lon, lat, campos, get, distancia=None):
     return [f["attributes"] for f in get(f"{IMPLURB}/{CAMADAS_MAO[camada]}/query", p).get("features", [])]
 
 
+_EXTENSO = {"UM": 1, "DOIS": 2, "TRES": 3, "QUATRO": 4, "CINCO": 5, "SEIS": 6, "SETE": 7, "OITO": 8, "NOVE": 9,
+            "DEZ": 10, "ONZE": 11, "DOZE": 12, "TREZE": 13, "CATORZE": 14, "QUATORZE": 14, "QUINZE": 15,
+            "DEZESSEIS": 16, "DEZESSETE": 17, "DEZOITO": 18, "DEZENOVE": 19, "VINTE": 20, "TRINTA": 30,
+            "PRIMEIRO": 1}
+_MESES = ("JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO",
+          "OUTUBRO", "NOVEMBRO", "DEZEMBRO")
+
+
+def variantes_endereco(endereco):
+    """'Avenida Sete de Setembro, 895' -> também 'Avenida 7 de Setembro, 895' (datas em nomes de rua)."""
+    out = [endereco]
+    t = _sem_acento(endereco)
+    palavras = t.replace(",", " , ").split()
+    mudou = False
+    for i, w in enumerate(palavras[:-2]):
+        if w in _EXTENSO and palavras[i + 1] == "DE" and palavras[i + 2] in _MESES:
+            palavras[i] = str(_EXTENSO[w])
+            mudou = True
+    if mudou:
+        out.append(" ".join(palavras).replace(" , ", ", "))
+    return out
+
+
 def geocodificar_manaus(endereco, get=arcgis):
-    d = get(f"{GEOCODE_MAO}/findAddressCandidates", {"SingleLine": endereco, "outSR": 4326, "maxLocations": 1})
-    c = (d.get("candidates") or [None])[0]
-    if not c or c.get("score", 0) < 80:
-        raise ErroFonte(f"Endereço não encontrado no geocodificador de Manaus: {endereco!r}")
-    return c["location"]["y"], c["location"]["x"], c["address"]
+    for tentativa in variantes_endereco(endereco):
+        d = get(f"{GEOCODE_MAO}/findAddressCandidates", {"SingleLine": tentativa, "outSR": 4326, "maxLocations": 1})
+        c = (d.get("candidates") or [None])[0]
+        if c and c.get("score", 0) >= 80:
+            return c["location"]["y"], c["location"]["x"], c["address"]
+    raise ErroFonte(f"Endereço não encontrado no geocodificador de Manaus: {endereco!r} "
+                    "(dica: números em algarismos, como 'Av. 7 de Setembro, 895')")
 
 
 def manaus(lat=None, lon=None, cgl=None, endereco=None, get=arcgis):
@@ -201,6 +226,7 @@ def buscar(con, cidade, data=None, **kw):
                       lat=kw.get("lat"), lon=kw.get("lon"), **({"get": kw["get"]} if kw.get("get") else {}))
         r["zonas"] = [z["zona"] for z in r["zonas_2024"]]
         aplicar_arco_tiete(r, kw.get("arco_tiete"))
+        avisos_de_sobreposicao(r)
     elif cidade == "manaus":
         r = manaus(lat=kw.get("lat"), lon=kw.get("lon"), cgl=kw.get("cgl"), endereco=kw.get("endereco"),
                    **({"get": kw["get"]} if kw.get("get") else {}))
@@ -233,18 +259,26 @@ def buscar(con, cidade, data=None, **kw):
 
 def aplicar_arco_tiete(r, forcar=None):
     """SP: ZEM no Subsetor Arco Tietê ganha a camada 'ZEM / Arco Tietê' (Res. CTLU 004/2018).
-    forcar: True/False vindo do usuário (--arco-tiete sim/nao) passa por cima da camada."""
-    detectado = r.get("arco_tiete")
+    O GeoSampa não publica os subsetores da MEM: fora da MEM a resposta é 'não'; dentro, quem
+    confirma é o usuário (forcar = True/False, de --arco-tiete sim/nao)."""
+    macros = r.get("macroarea")
     if forcar is not None:
         r["arco_tiete"], r["arco_tiete_origem"] = forcar, "informado pelo usuário"
-    elif detectado is None:
-        r["arco_tiete_origem"] = "não verificado"
+    elif macros is None:
+        r["arco_tiete_origem"] = "não verificado (camada de macroáreas não respondeu)"
         if "ZEM" in r["zonas"]:
             r.setdefault("avisos", []).append(
-                "Não deu para verificar se o lote está no Subsetor Arco Tietê (camada pde_macroarea_lei_18209). "
-                "Se estiver, o CA máximo da ZEM é 4,0 (Res. CTLU 004/2018): use arco_tiete=sim.")
+                "Não deu para ver a macroárea do lote. Se ele estiver no Subsetor Arco Tietê da MEM, o CA máximo "
+                "da ZEM é 4,0 (Res. CTLU 004/2018): use arco_tiete=sim.")
+    elif r.get("arco_tiete") is None:
+        r["arco_tiete_origem"] = "lote na MEM; o subsetor não tem camada aberta no GeoSampa"
+        if "ZEM" in r["zonas"]:
+            r.setdefault("avisos", []).append(
+                "Lote em ZEM na Macroárea de Estruturação Metropolitana (MEM). Se estiver no Subsetor Arco Tietê "
+                "(SISZON, camada MA), o CA máximo é 4,0 pela Res. CTLU 004/2018: confirme e use arco_tiete=sim. "
+                "Sem a confirmação, a busca usa o Quadro 3 (CA 2,0).")
     else:
-        r["arco_tiete_origem"] = "camada pde_macroarea_lei_18209 (campos não conferidos)"
+        r["arco_tiete_origem"] = "fora da MEM (camada pde_macroarea_lei_18209)"
     if r.get("arco_tiete"):
         zs = []
         for z in r["zonas"]:
@@ -252,6 +286,22 @@ def aplicar_arco_tiete(r, forcar=None):
             if z == "ZEM":
                 zs.append("ZEM / Arco Tietê")
         r["zonas"] = zs
+
+
+def avisos_de_sobreposicao(r):
+    """Uma linha por sobreposição encontrada (SP), na ordem das camadas."""
+    vistos = set()
+    for s in r.get("sobreposicoes") or []:
+        if not isinstance(s, dict):
+            continue
+        if s.get("erro"):
+            linha = f"Camada {s['camada']} não respondeu: confira essa sobreposição no SISZON."
+        else:
+            nome = s.get("nome") or s["tipo"]
+            linha = f"{nome}" + (f" ({s['norma']})" if s.get("norma") else "") + (f": {s['aviso']}" if s.get("aviso") else "")
+        if linha not in vistos:
+            vistos.add(linha)
+            r.setdefault("avisos", []).append(linha)
 
 
 def _nivel(cidade, zona):

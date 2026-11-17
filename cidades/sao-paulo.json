@@ -329,10 +329,11 @@
   "Lei 18.209/2024: os laudos Porto Seguro (jun/2026) dizem que ela só troca o Mapa 2 do PDE e prorroga prazos (PIU Arco Tietê, regularização); não traz parâmetros. Cadastrada como norma; falta conferir no texto oficial (o site de legislação deu 404).",
   "Permeabilidade por PA (Quadro 3A) já entra; falta o cruzamento lote -> Perímetro de Qualificação Ambiental (Mapa 3). Não achei a camada do Mapa 3 no WFS do GeoSampa.",
   "Quadro 4 original de 2016 + art. 73 da 18.081. Conferir se a Lei 18.177/2024 alterou o Quadro 4. Notas do Quadro 4 entram só pela letra quando o texto da nota não é achado.",
-  "Sobreposições (ZEPEC, Operações Urbanas, tombamento) ainda não extraídas.",
+  "Sobreposições: a busca já detecta área envoltória (CONDEPHAAT, CONPRESP, IPHAN), bem tombado (pelo SQL), operação urbana, AIU e Requalifica Centro (camadas conferidas em 17/11/2026). Falta a ZEPEC: nenhuma camada com 'zepec' no nome no WFS. Os parâmetros dessas áreas (ex.: CEPAC da OUCAB, regras da AIU) ainda não estão na base.",
   "Zona do lote: feito (python -m evtl_leis zona ou buscar; rota /buscar no Worker; camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada.",
-  "Arco Tietê: a busca procura 'Arco Tietê' nos campos da camada geoportal:pde_macroarea_lei_18209 (os laudos citam 'MA 0009 - L 18.209/2024' no SISZON). Nome da camada e dos campos não conferidos: rodar buscar --sql 008.018.0069-2 e ver 'arco_tiete' na resposta. Se a detecção falhar, use --arco-tiete sim/nao.",
+  "Arco Tietê: o GeoSampa não publica os subsetores da MEM (conferido em 17/11/2026 nas 488 camadas do WFS). A busca só afirma 'fora do Arco Tietê' quando o lote está fora da MEM (camada pde_macroarea_lei_18209); dentro da MEM, avisa e pede confirmação (--arco-tiete sim). Procurar a camada MA do SISZON ou o shapefile do Mapa 2 com subsetores.",
   "Res. CTLU 004/2018: confirmar data, link e se o CA 4,0 da ZEM vale também nos outros subsetores da MEM (Arco Pinheiros, Arco Jurubatuba...). Hoje só o Arco Tietê está cadastrado.",
-  "Gabarito de 2024 lido dos laudos: cinco EVTLs da Legali comparados em 17/11/2026 (planilha 'EVTL gabarito: laudos x ferramenta'). Divergência aberta: permeabilidade do PA 8 acima de 500 m² (base 0,20; laudo Tecelagem 0,15)."
+  "Gabarito de 2024 lido dos laudos: cinco EVTLs da Legali comparados em 17/11/2026 (planilha 'EVTL gabarito: laudos x ferramenta'). Divergência aberta: permeabilidade do PA 8 acima de 500 m² (base 0,20; laudo Tecelagem 0,15).",
+  "AIU Setor Central (Lei 17.844/2022): os lotes da Porto Seguro (Campos Elíseos) caem no Perímetro de Adesão do Setor Centro Metropolitano, segundo o GeoSampa. Os laudos não citam a AIU. Danilo: conferir se a adesão à AIU muda o CA e os demais parâmetros desses lotes."
  ]
 }

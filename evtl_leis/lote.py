@@ -199,27 +199,98 @@ def zonas_em(geom_ou_ponto, versao="2024", get=wfs):
                   key=lambda z: -z["fracao"])
 
 
-# Subsetor Arco Tietê da Macroárea de Estruturação Metropolitana (MEM). O SISZON cita
-# "MA 0009 - L 18.209/2024"; a camada abaixo é a do Mapa 2 do PDE na redação da Lei 18.209.
-# O nome dos campos não foi conferido, então a busca procura "Arco Tietê" em qualquer campo de texto.
+# Macroárea do PDE (Mapa 2 na redação da Lei 18.209/2024). O GeoSampa não publica os subsetores da
+# MEM (Arco Tietê, Arco Pinheiros...): conferido em 17/11/2026 nas 488 camadas do WFS. Então só dá para
+# afirmar que o lote NÃO está no Arco Tietê (fora da MEM); dentro da MEM, quem confirma é o usuário.
 CAMADA_MACROAREA = "pde_macroarea_lei_18209"
-ALVO_ARCO_TIETE = "ARCO TIETE"
 
 
 def _sem_acento(s):
     return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().upper()
 
 
-def arco_tiete(geom_ou_ponto, get=wfs):
-    """True/False: o lote toca o Subsetor Arco Tietê. None: a camada não respondeu como esperado."""
-    alvo = (f"POINT({geom_ou_ponto[0]:.3f} {geom_ou_ponto[1]:.3f})" if isinstance(geom_ou_ponto, tuple)
-            else wkt(geom_ou_ponto))
+def _cql_geo(geom_ou_ponto):
+    if isinstance(geom_ou_ponto, tuple):
+        return f"POINT({geom_ou_ponto[0]:.3f} {geom_ou_ponto[1]:.3f})"
+    return wkt(geom_ou_ponto)
+
+
+def macroarea(geom_ou_ponto, get=wfs):
+    """[{'sigla': 'MEM', 'nome': ...}] das macroáreas que o lote toca; None se a camada não respondeu."""
     try:
-        feats = get(CAMADA_MACROAREA, f"INTERSECTS(ge_poligono, {alvo})", None)
+        feats = get(CAMADA_MACROAREA, f"INTERSECTS(ge_poligono, {_cql_geo(geom_ou_ponto)})",
+                    "sg_macroarea,nm_macroarea")
     except ErroFonte:
         return None
-    textos = [v for f in feats for v in (f.get("properties") or {}).values() if isinstance(v, str)]
-    return any(ALVO_ARCO_TIETE in _sem_acento(t) for t in textos)
+    return [{"sigla": (f["properties"].get("sg_macroarea") or "").strip(),
+             "nome": f["properties"].get("nm_macroarea")} for f in feats]
+
+
+def arco_tiete(macros):
+    """False: fora da MEM, logo fora do Arco Tietê. None: na MEM (subsetor sem camada) ou sem resposta."""
+    if macros is None:
+        return None
+    if any(m["sigla"] == "MEM" for m in macros):
+        return None
+    return False
+
+
+# Sobreposições que o GeoSampa publica (camadas e campos conferidos em 17/11/2026 nos lotes da
+# Porto Seguro e da Tecelagem). Elas não mudam o número do Quadro 3, mas condicionam o projeto.
+SOBREPOSICOES = [
+    ("envoltoria_condephaat", "patrimonio_cultural_area_envoltoria_CONDEPHAAT", "nm_area", "tx_resolucao_condephaat",
+     "Área envoltória CONDEPHAAT: projeto depende de anuência prévia (gabarito, volumetria, materiais)."),
+    ("envoltoria_conpresp", "patrimonio_cultural_area_envoltoria_CONPRESP", "nm_area", "tx_resolucao_conpresp",
+     "Área envoltória CONPRESP: projeto depende de anuência prévia."),
+    ("envoltoria_iphan", "patrimonio_cultural_area_envoltoria_IPHAN", "nm_area", "tx_resolucao_iphan",
+     "Área envoltória IPHAN: projeto depende de anuência prévia."),
+    ("operacao_urbana", "operacao_urbana", "nm_operacao_urbana", "tx_lei_operacao_urbana",
+     "Operação urbana: o potencial adicional segue a lei da operação (ex.: CEPAC), não a outorga comum."),
+    ("subsetor_operacao_urbana", "subsetor_operacao_urbana", None, None, None),
+    ("aiu", "perimetro_aiu", "nm_lei", "cd_numero_lei",
+     "Área de Intervenção Urbana: conferir os parâmetros e incentivos da lei da AIU."),
+    ("requalifica_centro", "requalifica_centro_perimetro_geral", "nm_perimetro", "dc_lei",
+     "Perímetro do Requalifica Centro (Lei 17.577/2021): regras próprias para reforma e mudança de uso."),
+]
+CAMADA_TOMBADO = "patrimonio_cultural_bem_tombado"
+
+
+def _texto(props, campo):
+    if campo and props.get(campo):
+        return str(props[campo]).strip()
+    for k, v in props.items():  # campo desconhecido: o primeiro texto que pareça nome
+        if isinstance(v, str) and k.startswith(("nm_", "tx_", "sg_")):
+            return v.strip()
+    return None
+
+
+def sobreposicoes(geom_ou_ponto, sql_partes=None, get=wfs):
+    """Lista de {tipo, nome, norma, camada, aviso}. Camada que não responder entra com 'erro'."""
+    alvo = _cql_geo(geom_ou_ponto)
+    out = []
+    for tipo, camada, campo_nome, campo_norma, aviso in SOBREPOSICOES:
+        try:
+            feats = get(camada, f"INTERSECTS(ge_poligono, {alvo})", None)
+        except ErroFonte as e:
+            out.append({"tipo": tipo, "camada": camada, "erro": str(e)[:120]})
+            continue
+        for f in feats:
+            p = f.get("properties") or {}
+            out.append({"tipo": tipo, "camada": camada, "nome": _texto(p, campo_nome),
+                        "norma": p.get(campo_norma) if campo_norma else None, "aviso": aviso})
+    if sql_partes:  # tombamento: só o próprio lote (o vizinho tombado encosta na divisa e cairia no INTERSECTS)
+        setor, quadra, lt = sql_partes[:3]
+        try:
+            feats = get(CAMADA_TOMBADO, f"cd_setor_fiscal='{setor}' AND cd_quadra_fiscal='{quadra}' AND cd_lote='{lt}'", None)
+            for f in feats:
+                p = f.get("properties") or {}
+                out.append({"tipo": "tombado", "camada": CAMADA_TOMBADO, "nome": p.get("nm_area_tombada"),
+                            "norma": " | ".join(x for x in (p.get("tx_resolucao_conpresp"), p.get("tx_resolucao_condephaat"))
+                                                if x and x != "não consta") or None,
+                            "aviso": "Bem tombado: qualquer intervenção depende de anuência prévia; demolição em regra vedada."})
+        except ErroFonte as e:
+            out.append({"tipo": "tombado", "camada": CAMADA_TOMBADO, "erro": str(e)[:120]})
+    return out
 
 
 def zona(sql=None, endereco=None, numero=None, lat=None, lon=None, comparar_2016=True, get=wfs):
@@ -257,5 +328,11 @@ def zona(sql=None, endereco=None, numero=None, lat=None, lon=None, comparar_2016
         z16 = [z["zona"] for z in res["zonas_2016"]]
         res["mudou_desde_2016"] = z24 != z16
     res["zona"] = res["zonas_2024"][0]["zona"] if res["zonas_2024"] else None
-    res["arco_tiete"] = arco_tiete(alvo, get)
+    res["macroarea"] = macroarea(alvo, get)
+    res["arco_tiete"] = arco_tiete(res["macroarea"])
+    partes = None
+    if lotes:
+        p = lotes[0]["properties"]
+        partes = (p["cd_setor_fiscal"], p["cd_quadra_fiscal"], p["cd_lote"])
+    res["sobreposicoes"] = sobreposicoes(alvo, partes, get)
     return res

@@ -5,7 +5,7 @@
 | Peça | Onde roda | Por quê |
 | --- | --- | --- |
 | Consulta (`/consultar`, `/historico`, `/normas`, `/avisos`) | Worker + D1 | leve, cabe nos 10 ms de CPU do plano free |
-| Busca do lote (`/buscar`) | Worker + D1 + GeoSampa/ArcGIS | espera de rede não conta como CPU; no máximo 29 subrequests (limite free: 50) |
+| Busca do lote (`/buscar`) | Worker + D1 + GeoSampa/ArcGIS | espera de rede não conta como CPU; no máximo 37 subrequests (limite free: 50) |
 | Vigia semanal (Querido Diário) | Cron do Worker, segunda 06:00 | só chamadas HTTP |
 | Diagnóstico de rede (`/diagnostico`) | Worker | mostra se a rede da Cloudflare alcança cada fonte |
 | Extração dos PDFs + consolidação | GitHub Actions (grátis) ou seu Mac | ler PDF passa de 10 ms de CPU |
