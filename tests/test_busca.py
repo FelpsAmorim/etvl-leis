@@ -80,3 +80,18 @@ class TestNatal(unittest.TestCase):
         r = busca.buscar(self.con, "natal", bairro="Tirol", bacia="CS")
         self.assertEqual(r["parametros"]["Bairro TIROL / Bacia CS"][0]["valor"], 5.0)
         self.assertTrue(any("eixos estruturantes" in g["texto"] for g in r["regras"]))
+
+
+class TestDataDeReferencia(unittest.TestCase):
+    def test_vigente_na_data(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            con = base.abrir(str(Path(tmp) / "t.db"))
+            kw = dict(norma_id="X", dispositivo="art. 1", fonte="teste", origem="manual")
+            base.gravar_parametro(con, "São Paulo", "ZPI-2", "to_acima_500", 0.3, vigente_desde="2016-03-23", **kw)
+            base.gravar_parametro(con, "São Paulo", "ZPI-2", "to_acima_500", 0.5, vigente_desde="2024-01-19", **kw)
+            v = lambda d=None: [r["valor"] for r in base.vigente(con, "São Paulo", "ZPI-2", data=d)]
+            self.assertEqual(v(), [0.5])
+            self.assertEqual(v("2020-01-01"), [0.3])
+            self.assertEqual(v("2024-01-19"), [0.5])
+            self.assertEqual(v("2010-01-01"), [])
+            con.close()

@@ -14,6 +14,7 @@ Comandos:
   python -m evtl_leis buscar --cidade manaus --endereco "Av Djalma Batista, 1661"  # ou --lat/--lon, --cgl
   python -m evtl_leis buscar --cidade natal --bairro Tirol --bacia CS [--eixo "Prudente de Morais"]  # ou --lat/--lon
   python -m evtl_leis buscar --cidade sao-paulo --sql 009.096.0000  # ou --endereco/--numero, --lat/--lon
+  python -m evtl_leis consultar --cidade sao-paulo --zona ZPI-2 --data 2020-01-01  # versão vigente na data (laudos antigos)
   python -m evtl_leis exportar                     # gera cloudflare/d1_dados.sql e cloudflare/src/fontes.json
 """
 
@@ -46,6 +47,15 @@ def _cidade_nome(slug):
     return consolidar.carregar_cidade(slug)["cidade"]
 
 
+def _data(txt):
+    import datetime
+    try:
+        datetime.date.fromisoformat(txt)
+    except ValueError:
+        raise argparse.ArgumentTypeError("use AAAA-MM-DD") from None
+    return txt
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="evtl_leis", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -61,6 +71,7 @@ def main(argv=None):
     c = sub.add_parser("consultar")
     c.add_argument("--cidade", required=True)
     c.add_argument("--zona")
+    c.add_argument("--data", type=_data, help="AAAA-MM-DD: valores vigentes nessa data")
     c.add_argument("--json", action="store_true")
     h = sub.add_parser("historico")
     h.add_argument("--cidade", required=True)
@@ -87,6 +98,7 @@ def main(argv=None):
         bu.add_argument(a)
     bu.add_argument("--lat", type=float)
     bu.add_argument("--lon", type=float)
+    bu.add_argument("--data", type=_data, help="AAAA-MM-DD: valores vigentes nessa data (ex.: data do laudo)")
     bu.add_argument("--json", action="store_true")
     l = sub.add_parser("ler")
     l.add_argument("url")
@@ -159,7 +171,7 @@ def main(argv=None):
               if getattr(args, k) is not None}
         if not kw:
             ap.error("informe como achar o lote (--lat/--lon, --sql, --cgl, --endereco ou --bairro)")
-        r = busca.buscar(con, args.cidade, **kw)
+        r = busca.buscar(con, args.cidade, data=args.data, **kw)
         if args.json:
             print(json.dumps(r, ensure_ascii=False, indent=2, default=str))
             return 0
@@ -168,7 +180,7 @@ def main(argv=None):
         print(f"{r['cidade']}: {json.dumps(ident, ensure_ascii=False)}")
         if r.get("zonas_2016") and r.get("mudou_desde_2016"):
             print(f"ATENÇÃO: zona mudou desde 2016 (era {', '.join(z['zona'] for z in r['zonas_2016'])}).")
-        for a in r.get("avisos", []) + ([r["aviso"]] if r.get("aviso") else []):
+        for a in r.get("avisos", []) + [r[k] for k in ("aviso", "aviso_data") if r.get(k)]:
             print(f"  ! {a}")
         for z, ps in r["parametros"].items():
             normais = [x for x in ps if not x["parametro"].startswith("uso:")]
@@ -189,7 +201,7 @@ def main(argv=None):
         return 0
 
     if args.cmd == "consultar":
-        linhas = base.vigente(con, _cidade_nome(args.cidade), args.zona)
+        linhas = base.vigente(con, _cidade_nome(args.cidade), args.zona, data=args.data)
         if args.json:
             print(json.dumps(linhas, ensure_ascii=False, indent=2))
             return 0

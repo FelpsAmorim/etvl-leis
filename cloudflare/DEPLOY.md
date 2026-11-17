@@ -5,6 +5,7 @@
 | Peça | Onde roda | Por quê |
 | --- | --- | --- |
 | Consulta (`/consultar`, `/historico`, `/normas`, `/avisos`) | Worker + D1 | leve, cabe nos 10 ms de CPU do plano free |
+| Busca do lote (`/buscar`) | Worker + D1 + GeoSampa/ArcGIS | espera de rede não conta como CPU; no máximo 28 subrequests (limite free: 50) |
 | Vigia semanal (Querido Diário) | Cron do Worker, segunda 06:00 | só chamadas HTTP |
 | Diagnóstico de rede (`/diagnostico`) | Worker | mostra se a rede da Cloudflare alcança cada fonte |
 | Extração dos PDFs + consolidação | GitHub Actions (grátis) ou seu Mac | ler PDF passa de 10 ms de CPU |
@@ -55,3 +56,5 @@ Os servidores do GitHub ficam nos EUA. Se algum site de prefeitura bloquear IP d
 ## Testado aqui
 
 `wrangler dev` local com D1 local: `/`, `/consultar` (SP/ZEM: 10 parâmetros + 7 regras), `/historico` (Natal) e o cron responderam certo. `/diagnostico` e a vigia rodaram, mas as chamadas externas foram bloqueadas pela rede do ambiente de desenvolvimento, não pelo código.
+
+Testes do Worker (offline, D1 trocado por SQLite em memória com `d1_dados.sql`): `cd cloudflare && npm test`. Exige Node 22.5+.

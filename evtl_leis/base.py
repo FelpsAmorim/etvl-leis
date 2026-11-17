@@ -53,9 +53,15 @@ def gravar_norma(con, n, cidade):
                  "atualizado_em": agora()})
 
 
-def vigente(con, cidade, zona=None, parametro=None):
-    sql = "SELECT * FROM parametros WHERE cidade=? AND vigente_ate IS NULL"
-    args = [cidade]
+def vigente(con, cidade, zona=None, parametro=None, data=None):
+    """Valores vigentes hoje ou, com data='AAAA-MM-DD', os que valiam nessa data."""
+    if data:
+        sql = ("SELECT * FROM parametros WHERE cidade=? AND vigente_desde <= ? "
+               "AND (vigente_ate IS NULL OR vigente_ate > ?)")
+        args = [cidade, data, data]
+    else:
+        sql = "SELECT * FROM parametros WHERE cidade=? AND vigente_ate IS NULL"
+        args = [cidade]
     if zona:
         sql += " AND zona=?"
         args.append(zona)

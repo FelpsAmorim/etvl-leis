@@ -193,8 +193,9 @@ def natal(con, bairro=None, bacia=None, eixo=None, lat=None, lon=None, get=arcgi
 
 # ---------- interface comum ----------
 
-def buscar(con, cidade, **kw):
-    """Devolve {'cidade', 'zonas', ..., 'parametros': {zona: [...]}, 'regras': [...]}."""
+def buscar(con, cidade, data=None, **kw):
+    """data='AAAA-MM-DD': parâmetros vigentes nessa data (para comparar com laudos antigos).
+    Devolve {'cidade', 'zonas', ..., 'parametros': {zona: [...]}, 'regras': [...]}."""
     if cidade == "sao-paulo":
         r = lote.zona(sql=kw.get("sql"), endereco=kw.get("endereco"), numero=kw.get("numero"),
                       lat=kw.get("lat"), lon=kw.get("lon"))
@@ -207,7 +208,11 @@ def buscar(con, cidade, **kw):
     else:
         raise ValueError(f"cidade sem busca: {cidade}")
     nome = r["cidade"]
-    r["parametros"] = {z: base.vigente(con, nome, z) for z in r["zonas"]}
+    r["parametros"] = {z: base.vigente(con, nome, z, data=data) for z in r["zonas"]}
+    if data:
+        r["data_referencia"] = data
+        r["aviso_data"] = ("Parâmetros na versão vigente nessa data. As regras textuais não têm data de "
+                           "vigência na base: confira se já valiam.")
     regras, vistas = [], set()
     for z in r["zonas"]:
         for g in base.regras(con, nome, z):

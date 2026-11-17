@@ -291,6 +291,6 @@
   "Permeabilidade por PA (Quadro 3A) já entra; falta o cruzamento lote -> Perímetro de Qualificação Ambiental (Mapa 3). Não achei a camada do Mapa 3 no WFS do GeoSampa.",
   "Quadro 4 original de 2016 + art. 73 da 18.081. Conferir se a Lei 18.177/2024 alterou o Quadro 4. Notas do Quadro 4 entram só pela letra quando o texto da nota não é achado.",
   "Sobreposições (ZEPEC, Operações Urbanas, tombamento) ainda não extraídas.",
-  "Zona do lote: feito (python -m evtl_leis zona, camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada."
+  "Zona do lote: feito (python -m evtl_leis zona ou buscar; rota /buscar no Worker; camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada."
  ]
 }

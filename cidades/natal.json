@@ -436,7 +436,7 @@
   "Anexo II lido do texto do compilado pós Código de Obras (fontes_locais/natal/PLANODIRETOR_POSCODIGODEOBRAS.pdf.txt). Entrou o CA máximo das 30 bacias de esgotamento (linhas 'CA' dos Quadros 1.1/1.2, conferidas contra os rótulos dos Mapas 2/2A: 28 batem, 2 ilegíveis no mapa).",
   "Quadros 1.1 a 1.4 transcritos em cidades/natal_anexo2.txt a partir do PDF do DOM de 08/03/2022 (p. 27-30), lidos pela posição das células e conferidos contra a imagem. Os bairros das zonas Leste e Oeste aparecem no Quadro 1.2 com bacias; no 1.1 só com o máximo.",
   "Quadro 2 (recuos em função de H) é imagem no PDF; só a legenda saiu no texto. Transcrever à mão ou pelo --modelo com a imagem.",
-  "Sem consulta lote -> bacia: os Mapas 2/2A não têm serviço aberto; a bacia do lote precisa ser informada.",
+  "Lote -> bairro e áreas especiais (ZA, ZPAs, AEIS, AEITP...): feito pela coordenada no portal ArcGIS da SEMURB (buscar --lat/--lon; rota /buscar). Lote -> bacia de esgotamento: os Mapas 2/2A não têm serviço aberto (a camada Bacias_Drenagem é outra divisão); a bacia e o eixo continuam informados pelo usuário. Pedir os shapefiles dos Mapas 2/2A à SEMURB.",
   "Confirmar números, datas e vigência da LC 261/2025 (ZPAs) e da Lei 7.801 (AEITPs).",
   "Valores 'Município (geral)' foram lidos do texto da lei por web fetch (arts. 11, 55, 58, 59, 60) e estão como conferido=0."
  ],

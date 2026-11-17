@@ -2,7 +2,8 @@
 // A extração pesada (PDF) roda fora (Mac ou GitHub Actions) e chega aqui pelo d1_dados.sql.
 // Aqui ficam: consulta, histórico, avisos, diagnóstico de rede e a vigia semanal (cron).
 
-import FONTES from "./fontes.json";
+import FONTES from "./fontes.json" with { type: "json" };
+import { buscar, filtroVigencia, ErroEntrada, ErroFonte } from "./busca.js";
 
 const QD = "https://api.queridodiario.ok.org.br/gazettes";
 const UA = { "User-Agent": "evtl-leis/0.2 (+consulta de legislacao urbanistica)" };
@@ -85,7 +86,11 @@ export default {
         return json({
           servico: "evtl-leis",
           rotas: {
+            "/buscar?cidade=sao-paulo&sql=009.096.0000": "lote -> zona -> parâmetros + regras (ou &endereco=&numero=, &lat=&lon=)",
+            "/buscar?cidade=manaus&endereco=Av Djalma Batista, 1661": "idem em Manaus (ou &cgl=, &lat=&lon=)",
+            "/buscar?cidade=natal&bairro=Tirol&bacia=CS&eixo=Prudente de Morais": "idem em Natal (ou &lat=&lon= para bairro e áreas especiais)",
             "/consultar?cidade=sao-paulo&zona=ZEM": "parâmetros vigentes + regras",
+            "&data=2022-05-01": "em /buscar e /consultar: parâmetros vigentes nessa data (comparar com laudos antigos)",
             "/historico?cidade=sao-paulo&zona=ZEM&parametro=ca_max": "todas as versões",
             "/normas?cidade=sao-paulo": "leis cadastradas",
             "/avisos": "menções novas nos diários oficiais",
@@ -99,14 +104,31 @@ export default {
         const cidade = nomeCidade(p.get("cidade"));
         if (!cidade) return json({ erro: "informe ?cidade=" }, 400);
         const zona = p.get("zona");
+        const data = p.get("data");
+        let v;
+        try {
+          v = filtroVigencia(data);
+        } catch (e) {
+          return json({ erro: e.message }, 400);
+        }
         const params = await env.DB.prepare(
-          `SELECT zona, parametro, valor, nota, norma_id, dispositivo, fonte, vigente_desde, origem, conferido
-           FROM parametros WHERE cidade=? AND vigente_ate IS NULL ${zona ? "AND zona=?" : ""}
+          `SELECT zona, parametro, valor, nota, norma_id, dispositivo, fonte, vigente_desde, vigente_ate, origem, conferido
+           FROM parametros WHERE cidade=? AND ${v.sql} ${zona ? "AND zona=?" : ""}
            ORDER BY zona, parametro`
-        ).bind(...(zona ? [cidade, zona] : [cidade])).all();
+        ).bind(cidade, ...v.args, ...(zona ? [zona] : [])).all();
         const regras = (await env.DB.prepare(`SELECT * FROM regras WHERE cidade=?`).bind(cidade).all()).results
           .filter((r) => !zona || r.zonas.split(",").some((z) => z === "todas" || z === zona));
-        return json({ cidade, zona, parametros: params.results, regras });
+        return json({ cidade, zona, data_referencia: data || null, parametros: params.results, regras });
+      }
+
+      case "/buscar": {
+        try {
+          return json(await buscar(env.DB, p));
+        } catch (e) {
+          if (e instanceof ErroEntrada) return json({ erro: e.message }, 400);
+          if (e instanceof ErroFonte) return json({ erro: e.message, tipo: "fonte externa" }, 502);
+          throw e;
+        }
       }
 
       case "/historico": {
