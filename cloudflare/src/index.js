@@ -40,7 +40,8 @@ async function testar(url) {
 }
 
 async function diagnostico() {
-  const alvos = Object.entries(FONTES.alvos);
+  // só endereços da web (uma fonte citada por texto, como o DOM de Natal, não tem o que testar)
+  const alvos = Object.entries(FONTES.alvos).filter(([, url]) => /^https?:\/\//.test(url));
   const res = await Promise.all(alvos.map(async ([nome, url]) => ({ nome, host: new URL(url).host, url, ...(await testar(url)) })));
   const ok = res.filter((r) => r.estado === "ok").length;
   return { alcancaveis: `${ok} de ${res.length}`, colo: null, resultados: res };
