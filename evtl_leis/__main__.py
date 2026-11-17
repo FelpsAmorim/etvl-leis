@@ -11,7 +11,7 @@ Comandos:
   python -m evtl_leis pendencias                   # o que falta por cidade
   python -m evtl_leis ler <url>                    # lê uma lei (HTML/PDF) e lista artigos e notas
   python -m evtl_leis zona --cidade sao-paulo --sql 009.096.0000   # ou --endereco "Av Paulista" --numero 1578, ou --lat/--lon
-  python -m evtl_leis buscar --cidade manaus --endereco "Av Djalma Batista, 1661"  # ou --lat/--lon, --cgl
+  python -m evtl_leis buscar --cidade manaus --endereco "Av Djalma Batista, 1661"  # ou --lat/--lon, --cgl, --iptu
   python -m evtl_leis buscar --cidade natal --bairro Tirol --bacia CS [--eixo "Prudente de Morais"]  # ou --lat/--lon
   python -m evtl_leis buscar --cidade sao-paulo --sql 009.096.0000  # ou --endereco/--numero, --lat/--lon
   python -m evtl_leis consultar --cidade sao-paulo --zona ZPI-2 --data 2020-01-01  # versão vigente na data (laudos antigos)
@@ -94,7 +94,7 @@ def main(argv=None):
     z.add_argument("--json", action="store_true")
     bu = sub.add_parser("buscar", help="lote -> zona -> parâmetros e regras (SP, Manaus, Natal)")
     bu.add_argument("--cidade", required=True, choices=["sao-paulo", "manaus", "natal"])
-    for a in ("--sql", "--cgl", "--endereco", "--numero", "--bairro", "--bacia", "--eixo"):
+    for a in ("--sql", "--cgl", "--iptu", "--endereco", "--numero", "--bairro", "--bacia", "--eixo"):
         bu.add_argument(a)
     bu.add_argument("--lat", type=float)
     bu.add_argument("--lon", type=float)
@@ -169,10 +169,10 @@ def main(argv=None):
         return 1 if erros else 0
 
     if args.cmd == "buscar":
-        kw = {k: getattr(args, k) for k in ("sql", "cgl", "endereco", "numero", "bairro", "bacia", "eixo", "lat", "lon")
+        kw = {k: getattr(args, k) for k in ("sql", "cgl", "iptu", "endereco", "numero", "bairro", "bacia", "eixo", "lat", "lon")
               if getattr(args, k) is not None}
         if not kw:
-            ap.error("informe como achar o lote (--lat/--lon, --sql, --cgl, --endereco ou --bairro)")
+            ap.error("informe como achar o lote (--lat/--lon, --sql, --cgl, --iptu, --endereco ou --bairro)")
         if args.arco_tiete:
             kw["arco_tiete"] = args.arco_tiete == "sim"
         r = busca.buscar(con, args.cidade, data=args.data, **kw)

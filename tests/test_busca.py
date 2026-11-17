@@ -226,3 +226,47 @@ class TestManausEndereco(unittest.TestCase):
 
     def test_sem_data_no_nome_nao_inventa_variante(self):
         self.assertEqual(busca.variantes_endereco("Av Djalma Batista, 1661"), ["Av Djalma Batista, 1661"])
+
+
+class TestManausAG0230(unittest.TestCase):
+    """AG 0230 (Av. 7 de Setembro, 895): sondagem de 17/11/2026 na camada da IMPLURB."""
+
+    LOTE = {"CGL": "0200420373", "SETOR": "02", "QUADRA": "0042", "LOTE": "0373", "MATRICULA": 5341, "SHAPE.AREA": 1378.086664945}
+    ANEL = [[-60.0231, -3.1343], [-60.0228, -3.1343], [-60.0228, -3.1346], [-60.0231, -3.1346]]
+
+    def get(self, url, params):
+        if url.endswith("findAddressCandidates"):
+            return {"candidates": [{"address": "895 AVENIDA 7 DE SETEMBRO, CENTRO, MANAUS", "score": 90.22,
+                                    "location": {"x": -60.02232825787, "y": -3.134626184888}}]}
+        if "/MapServer/3/query" in url:
+            if "where" in params:
+                ok = params["where"] == "MATRICULA=5341"
+                return {"features": [{"attributes": self.LOTE, "geometry": {"rings": [self.ANEL]}}] if ok else []}
+            if "distance" not in params:
+                return {"features": []}  # o ponto do endereço cai na rua
+            return {"features": [{"attributes": {"CGL": "0200420254", "SETOR": "02", "QUADRA": "0042", "LOTE": "0254",
+                                                 "MATRICULA": 5333, "SHAPE.AREA": 206.1}}]}
+        if "/MapServer/5/query" in url:
+            return {"features": [{"attributes": {"SETOR": "01", "BAIRRO": "CENTRO"}}]}
+        if "/MapServer/4/query" in url:  # Sítio Histórico só a menos de 30 m, nunca no ponto
+            return {"features": [{"attributes": {"SETOR_": "SUBSETOR SÍTIO HISTÓRICO"}}]} if "distance" in params else {"features": []}
+        if "/MapServer/6/query" in url:
+            return {"features": [{"attributes": {"NOME_BAIRR": "CENTRO"}}]}
+        return {"features": []}
+
+    def test_por_iptu_acha_o_lote_certo(self):
+        r = busca.manaus(iptu="5341", get=self.get)
+        self.assertEqual(r["lote"]["cgl"], "0200420373")
+        self.assertEqual(r["lote"]["area_m2"], 1378.09)
+        self.assertEqual(r["zonas"], ["Setor 01"])
+        self.assertEqual(r["subsetores_proximos"], ["Subsetor Sítio Histórico"])
+        self.assertTrue(any("menos de 30 m do Subsetor Sítio Histórico" in a for a in r["avisos"]))
+
+    def test_endereco_na_rua_avisa_que_pode_ser_o_vizinho(self):
+        r = busca.manaus(endereco="Avenida Sete de Setembro, 895", get=self.get)
+        self.assertEqual(r["lote"]["cgl"], "0200420254")
+        self.assertTrue(any("caiu fora de lote" in a and "--iptu" in a for a in r["avisos"]))
+
+    def test_iptu_inexistente(self):
+        with self.assertRaises(busca.ErroFonte):
+            busca.manaus(iptu="999", get=self.get)

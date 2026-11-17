@@ -88,7 +88,7 @@ export default {
           servico: "evtl-leis",
           rotas: {
             "/buscar?cidade=sao-paulo&sql=009.096.0000": "lote -> zona -> parâmetros + regras (ou &endereco=&numero=, &lat=&lon=)",
-            "/buscar?cidade=manaus&endereco=Av Djalma Batista, 1661": "idem em Manaus (ou &cgl=, &lat=&lon=)",
+            "/buscar?cidade=manaus&endereco=Av Djalma Batista, 1661": "idem em Manaus (ou &cgl=, &iptu=, &lat=&lon=)",
             "/buscar?cidade=natal&bairro=Tirol&bacia=CS&eixo=Prudente de Morais": "idem em Natal (ou &lat=&lon= para bairro e áreas especiais)",
             "/consultar?cidade=sao-paulo&zona=ZEM": "parâmetros vigentes + regras",
             "&data=2022-05-01": "em /buscar e /consultar: parâmetros vigentes nessa data (comparar com laudos antigos)",
