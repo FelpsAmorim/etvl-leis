@@ -59,9 +59,10 @@
  "alteracoes": [],
  "pendencias": [
   "Parâmetros por setor/subsetor vêm da base geográfica da IMPLURB (camadas SETORES e SUBSETORES), não do texto da lei. Conferir contra o Anexo I da Lei 1.838/2014 e as mudanças da Lei 2.402/2019; o SAPL da Câmara bloqueia robôs, então baixar os PDFs pelo navegador para fontes_locais/manaus/.",
-  "Gabarito do Anexo I está em pavimentos (gabarito_pav), não em metros; confirmar a unidade no texto da lei.",
+  "Gabarito do Anexo I está em pavimentos (gabarito_pav): o laudo AG 0230 (Sítio Histórico, 3 pavimentos) confirma. Falta conferir no texto da lei.",
   "Lote -> setor: feito (buscar --cidade manaus por endereço, --cgl ou --lat/--lon; rota /buscar no Worker). Endereço que cai na rua pega o lote mais próximo num raio de 20 m: conferir o CGL.",
   "TO, recuos e permeabilidade não estão na camada; dependem do texto da Lei 1.838 (arts. e Anexo).",
-  "Conferir a premissa 'art. 77 §1º da 1.838 (isenção de permeabilidade no Sítio Histórico)': a leitura parcial indicou que o art. 77 pode não ter §1º. O Centro Histórico é Setor 1 com subsetores Centro Antigo e Sítio Histórico (Plano Diretor, art. 2º, II, Anexo VI)."
+  "Conferir a premissa 'art. 77 §1º da 1.838 (isenção de permeabilidade no Sítio Histórico)': a leitura parcial indicou que o art. 77 pode não ter §1º. O Centro Histórico é Setor 1 com subsetores Centro Antigo e Sítio Histórico (Plano Diretor, art. 2º, II, Anexo VI). O laudo AG 0230 (ago/2026) aplica a isenção pelo art. 77 §1º no Sítio Histórico: conferir no texto da lei.",
+  "Precedência: dentro de um subsetor, valem os valores do subsetor (CA máx., gabarito); o que o subsetor não define é herdado do setor e sai marcado 'herdado' na busca. Conferir se a herança vale (o laudo AG 0230 dá CA básico 'N/C' no Sítio Histórico, e a busca herda 2,0 do Setor 01)."
  ]
 }

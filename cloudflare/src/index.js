@@ -91,6 +91,7 @@ export default {
             "/buscar?cidade=natal&bairro=Tirol&bacia=CS&eixo=Prudente de Morais": "idem em Natal (ou &lat=&lon= para bairro e áreas especiais)",
             "/consultar?cidade=sao-paulo&zona=ZEM": "parâmetros vigentes + regras",
             "&data=2022-05-01": "em /buscar e /consultar: parâmetros vigentes nessa data (comparar com laudos antigos)",
+            "&arco_tiete=sim|nao": "em /buscar (SP): força o lote dentro/fora do Subsetor Arco Tietê; por padrão vem do GeoSampa",
             "/historico?cidade=sao-paulo&zona=ZEM&parametro=ca_max": "todas as versões",
             "/normas?cidade=sao-paulo": "leis cadastradas",
             "/avisos": "menções novas nos diários oficiais",

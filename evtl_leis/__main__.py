@@ -98,6 +98,8 @@ def main(argv=None):
         bu.add_argument(a)
     bu.add_argument("--lat", type=float)
     bu.add_argument("--lon", type=float)
+    bu.add_argument("--arco-tiete", choices=["sim", "nao"],
+                    help="SP: força o lote dentro/fora do Subsetor Arco Tietê (por padrão, vem da camada do GeoSampa)")
     bu.add_argument("--data", type=_data, help="AAAA-MM-DD: valores vigentes nessa data (ex.: data do laudo)")
     bu.add_argument("--json", action="store_true")
     l = sub.add_parser("ler")
@@ -171,6 +173,8 @@ def main(argv=None):
               if getattr(args, k) is not None}
         if not kw:
             ap.error("informe como achar o lote (--lat/--lon, --sql, --cgl, --endereco ou --bairro)")
+        if args.arco_tiete:
+            kw["arco_tiete"] = args.arco_tiete == "sim"
         r = busca.buscar(con, args.cidade, data=args.data, **kw)
         if args.json:
             print(json.dumps(r, ensure_ascii=False, indent=2, default=str))
@@ -182,6 +186,22 @@ def main(argv=None):
             print(f"ATENÇÃO: zona mudou desde 2016 (era {', '.join(z['zona'] for z in r['zonas_2016'])}).")
         for a in r.get("avisos", []) + [r[k] for k in ("aviso", "aviso_data") if r.get(k)]:
             print(f"  ! {a}")
+        if r.get("aplicaveis"):
+            print("\nParâmetros aplicáveis ao lote (a zona mais específica prevalece):")
+            for par, v in r["aplicaveis"].items():
+                if par.startswith("uso:"):
+                    continue
+                val = "—" if v["valor"] is None else f"{v['valor']:g}".replace(".", ",")
+                extra = ""
+                if v.get("substitui"):
+                    extra += "  (no lugar de " + ", ".join(
+                        f"{s['zona']}: {'—' if s['valor'] is None else format(s['valor'], 'g').replace('.', ',')}"
+                        for s in v["substitui"]) + ")"
+                if v.get("herdado"):
+                    extra += "  [herdado]"
+                print(f"  {ROTULOS.get(par, par):<45} {val:>6}   {v['zona']}{extra}"
+                      + ("" if v["conferido"] else "  [conferir]"))
+            print("\nPor zona:")
         for z, ps in r["parametros"].items():
             normais = [x for x in ps if not x["parametro"].startswith("uso:")]
             usos = [x for x in ps if x["parametro"].startswith("uso:")]

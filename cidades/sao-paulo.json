@@ -55,6 +55,26 @@
    "papel": "alteradora",
    "ementa": "Compatibiliza a Lei 18.081/2024, metodologia e legendas do Mapa I",
    "link": "https://legislacao.prefeitura.sp.gov.br/leis/lei-18177-de-25-de-julho-de-2024"
+  },
+  {
+   "id": "LEI_18209_2024",
+   "tipo": "LEI",
+   "numero": "18209",
+   "ano": 2024,
+   "data": "2024-12-20",
+   "papel": "alteracao_pde",
+   "ementa": "Substitui o Mapa 2 do PDE (macroáreas), prorroga o prazo do PIU Arco Tietê e a regularização da Lei 17.202/2019 e institui o direito real de laje em usos INFRA. Não traz parâmetros de ocupação (leitura dos laudos Porto Seguro, jun/2026; conferir o texto).",
+   "link": null
+  },
+  {
+   "id": "RES_CTLU_004_2018",
+   "tipo": "RES",
+   "numero": "004",
+   "ano": 2018,
+   "data": null,
+   "papel": "interpretacao",
+   "ementa": "Resolução CTLU 004/2018 (SMUL): aplicação dos parâmetros no Subsetor Arco Tietê da MEM enquanto o PIU não for aprovado (ZEM: art. 8º da LPUOS, CA máx. 4,0; ZEPEC: regime próprio). Data e link a confirmar.",
+   "link": null
   }
  ],
  "quadros": [
@@ -83,7 +103,18 @@
    "url": "https://gestaourbana.prefeitura.sp.gov.br/wp-content/uploads/2016/03/009-QUADRO_4_FINAL.pdf"
   }
  ],
- "manuais": [],
+ "manuais": [
+  {
+   "zona": "ZEM / Arco Tietê",
+   "parametro": "ca_max",
+   "valor": 4.0,
+   "norma": "LEI_16402_2016",
+   "dispositivo": "art. 8º §1º (nota d do Quadro 3), aplicado no Subsetor Arco Tietê pela Res. CTLU 004/2018",
+   "vigente_desde": "2016-03-23",
+   "fonte": null,
+   "nota": "ZEM no Subsetor Arco Tietê da MEM, até a aprovação do PIU Arco Tietê. Fonte: laudos Porto Seguro (jun/2026); conferir na Res. CTLU 004/2018."
+  }
+ ],
  "alteracoes": [
   {
    "zona": "ZPI-2",
@@ -282,15 +313,26 @@
    "norma": "LEI_18081_2024",
    "dispositivo": "art. 85",
    "texto": "Quadro 3B (pontuação da Quota Ambiental) substituído pelo Anexo III da Lei 18.081 (o texto do art. 85 chama esse anexo de 'Quadro 3', mas o arquivo publicado é o Quadro 3B)."
+  },
+  {
+   "zonas": [
+    "ZEM / Arco Tietê"
+   ],
+   "norma": "RES_CTLU_004_2018",
+   "dispositivo": "Res. CTLU 004/2018",
+   "texto": "Subsetor Arco Tietê (MEM), enquanto o PIU Arco Tietê não for aprovado: ZEM segue o art. 8º da LPUOS, com CA máximo 4,0; ZEPEC segue regime próprio (item IV), sem o CA 4,0. A aprovação do PIU pode mudar CA, gabarito, usos e contrapartidas."
   }
  ],
  "pendencias": [
   "Lei 18.081/2024 lida inteira (arts. 1-97, pela URL .../lei-18081-de-19-de-janeiro-de-2023, que traz o texto completo). Do art. 42 em diante, só o art. 72 muda valor do Quadro 3 (TO de ZPI-2 > 500 m² = 0,5) e o art. 73 muda o Quadro 4 (ver 'alteracoes'); o resto entrou como regras.",
   "Quadro 3: linhas AVP-2, AC-1 e AC-2 vêm com texto girado no PDF e não são lidas; 34 zonas lidas.",
-  "Lei 18.209 citada nos laudos da Porto Seguro: o GeoSampa tem a camada 'pde_macroarea_lei_18209', então a lei existe e trata de macroáreas do PDE. Confirmar ementa e se mexe em parâmetros (site de legislação deu 404).",
+  "Lei 18.209/2024: os laudos Porto Seguro (jun/2026) dizem que ela só troca o Mapa 2 do PDE e prorroga prazos (PIU Arco Tietê, regularização); não traz parâmetros. Cadastrada como norma; falta conferir no texto oficial (o site de legislação deu 404).",
   "Permeabilidade por PA (Quadro 3A) já entra; falta o cruzamento lote -> Perímetro de Qualificação Ambiental (Mapa 3). Não achei a camada do Mapa 3 no WFS do GeoSampa.",
   "Quadro 4 original de 2016 + art. 73 da 18.081. Conferir se a Lei 18.177/2024 alterou o Quadro 4. Notas do Quadro 4 entram só pela letra quando o texto da nota não é achado.",
   "Sobreposições (ZEPEC, Operações Urbanas, tombamento) ainda não extraídas.",
-  "Zona do lote: feito (python -m evtl_leis zona ou buscar; rota /buscar no Worker; camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada."
+  "Zona do lote: feito (python -m evtl_leis zona ou buscar; rota /buscar no Worker; camada geoportal:perimetro_zona_lei_18177_24). Unidades de condomínio não batem pelo SQL da unidade: usar endereço ou coordenada.",
+  "Arco Tietê: a busca procura 'Arco Tietê' nos campos da camada geoportal:pde_macroarea_lei_18209 (os laudos citam 'MA 0009 - L 18.209/2024' no SISZON). Nome da camada e dos campos não conferidos: rodar buscar --sql 008.018.0069-2 e ver 'arco_tiete' na resposta. Se a detecção falhar, use --arco-tiete sim/nao.",
+  "Res. CTLU 004/2018: confirmar data, link e se o CA 4,0 da ZEM vale também nos outros subsetores da MEM (Arco Pinheiros, Arco Jurubatuba...). Hoje só o Arco Tietê está cadastrado.",
+  "Gabarito de 2024 lido dos laudos: cinco EVTLs da Legali comparados em 17/11/2026 (planilha 'EVTL gabarito: laudos x ferramenta'). Divergência aberta: permeabilidade do PA 8 acima de 500 m² (base 0,20; laudo Tecelagem 0,15)."
  ]
 }

@@ -39,6 +39,18 @@ Mostra, fonte por fonte, o que a máquina alcança. No ambiente de nuvem onde is
 
 Lote em mais de uma zona (SP): a busca estima a fração de cada zona por amostragem de pontos.
 
+**Parâmetros aplicáveis.** A resposta traz `aplicaveis`: um valor por parâmetro, já resolvida a precedência, com a zona de onde saiu e o que ela substituiu.
+
+| Cidade | Do geral para o específico (o último prevalece) |
+|---|---|
+| São Paulo | zona do Mapa 1 → camada sobreposta (hoje: `ZEM / Arco Tietê`, CA máx. 4,0 pela Res. CTLU 004/2018) |
+| Manaus | setor → subsetor (o que o subsetor não define vem do setor, marcado `herdado`) |
+| Natal | município → bairro (teto entre as bacias) → bacia → bairro × bacia → eixo |
+
+Lote de SP em mais de uma zona: `aplicaveis` vem vazio (`null`) e a resposta avisa, porque não existe um valor só.
+
+**Arco Tietê (SP).** A busca consulta a camada `pde_macroarea_lei_18209` do GeoSampa. Se ela não responder, a resposta avisa; `--arco-tiete sim|nao` (ou `arco_tiete=` na API) decide na mão.
+
 `--data AAAA-MM-DD` (em `buscar` e `consultar`) devolve os parâmetros na versão que valia naquela data. Use a data do laudo ao comparar com os EVTLs do gabarito: um laudo de 2022 em SP seguiu a Lei 16.402 antes das mudanças de 2024. As regras textuais ainda não têm data de vigência; a resposta avisa.
 
 Para leiaute de quadro sem leitor por regra: `atualizar --modelo` (precisa de `ANTHROPIC_API_KEY`; usa o Claude Haiku 5.5 só para transcrever, e as linhas saem marcadas "conferir").
@@ -74,6 +86,8 @@ Base: 3.187 parâmetros, 23 regras e 12 normas, todos com `conferido=0`.
 
 **São Paulo.** Lei 16.402/2016: Quadro 3 (34 zonas), Quadro 3A (permeabilidade e Quota Ambiental) e Quadro 4 (usos, 40 zonas × 59 subcategorias). Lei 18.081/2024 lida inteira (art. 72 muda a TO de ZPI-2; art. 73 muda usos; o resto entrou como regras). Lei 18.177/2024: regras de aplicação e o Mapa 1 novo. Busca do lote pelo GeoSampa. Faltam: Mapa 3 (perímetro PA), linhas AVP-2/AC-1/AC-2 do Quadro 3, sobreposições (ZEPEC, operação urbana, tombamento), checar se a 18.177 mudou o Quadro 4 e a Lei 18.209.
 
+Gabarito: os 5 EVTLs da Legali foram comparados com a base em 17/11/2026 (37 de 66 itens batem, 6 divergem, 17 faltam na base). As divergências de CA na ZEM do Arco Tietê e de setor × subsetor em Manaus foram corrigidas; as outras estão nas pendências.
+
 **Natal.** LC 208/2022: valores gerais e Anexo II, Quadros 1.1 a 1.4 (30 bacias, 36 bairros, 108 combinações bairro × bacia, 100 valores de eixos). Busca do bairro e das áreas especiais pela coordenada. Faltam: Quadro 2 (recuos, imagem no PDF), a bacia do lote (sem mapa aberto) e confirmar a LC 261/2025 e a Lei 7.801.
 
 **Manaus.** 116 valores de 18 setores e 16 subsetores, do ArcGIS da IMPLURB. Busca do lote por endereço, CGL ou coordenada. Faltam: TO e recuos (Lei 1.838/2014, SAPL bloqueia robôs) e confirmar que o gabarito está em pavimentos.
@@ -97,7 +111,7 @@ Veja `python -m evtl_leis pendencias` para a lista completa.
 
 Consulta, busca do lote, vigia e diagnóstico rodam num Worker com D1; a extração dos PDFs roda no GitHub Actions ou no Mac e carrega o D1. Passo a passo em `cloudflare/DEPLOY.md`.
 
-Rotas: `/buscar` (mesmos parâmetros da CLI: `cidade`, `sql`, `endereco`, `numero`, `cgl`, `bairro`, `bacia`, `eixo`, `lat`, `lon`, `data`), `/consultar`, `/historico`, `/normas`, `/avisos`, `/diagnostico`, `/vigiar`. Exemplo:
+Rotas: `/buscar` (mesmos parâmetros da CLI: `cidade`, `sql`, `endereco`, `numero`, `cgl`, `bairro`, `bacia`, `eixo`, `lat`, `lon`, `data`, `arco_tiete`), `/consultar`, `/historico`, `/normas`, `/avisos`, `/diagnostico`, `/vigiar`. Exemplo:
 
     /buscar?cidade=natal&bairro=Tirol&bacia=CS
     /buscar?cidade=sao-paulo&sql=009.096.0000&data=2022-05-01

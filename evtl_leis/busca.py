@@ -198,13 +198,15 @@ def buscar(con, cidade, data=None, **kw):
     Devolve {'cidade', 'zonas', ..., 'parametros': {zona: [...]}, 'regras': [...]}."""
     if cidade == "sao-paulo":
         r = lote.zona(sql=kw.get("sql"), endereco=kw.get("endereco"), numero=kw.get("numero"),
-                      lat=kw.get("lat"), lon=kw.get("lon"))
+                      lat=kw.get("lat"), lon=kw.get("lon"), **({"get": kw["get"]} if kw.get("get") else {}))
         r["zonas"] = [z["zona"] for z in r["zonas_2024"]]
+        aplicar_arco_tiete(r, kw.get("arco_tiete"))
     elif cidade == "manaus":
-        r = manaus(lat=kw.get("lat"), lon=kw.get("lon"), cgl=kw.get("cgl"), endereco=kw.get("endereco"))
+        r = manaus(lat=kw.get("lat"), lon=kw.get("lon"), cgl=kw.get("cgl"), endereco=kw.get("endereco"),
+                   **({"get": kw["get"]} if kw.get("get") else {}))
     elif cidade == "natal":
         r = natal(con, bairro=kw.get("bairro"), bacia=kw.get("bacia"), eixo=kw.get("eixo"),
-                  lat=kw.get("lat"), lon=kw.get("lon"))
+                  lat=kw.get("lat"), lon=kw.get("lon"), **({"get": kw["get"]} if kw.get("get") else {}))
     else:
         raise ValueError(f"cidade sem busca: {cidade}")
     nome = r["cidade"]
@@ -220,4 +222,76 @@ def buscar(con, cidade, data=None, **kw):
                 vistas.add((g["norma_id"], g["dispositivo"]))
                 regras.append(g)
     r["regras"] = regras
+    r["aplicaveis"] = aplicaveis(cidade, r["zonas"], r["parametros"])
+    if r["aplicaveis"] is None and len(r["zonas"]) > 1 and cidade == "sao-paulo":
+        r.setdefault("avisos", []).append(
+            "Lote em mais de uma zona: veja os parâmetros de cada zona (a parte de cada uma está em zonas_2024).")
     return r
+
+
+# ---------- precedência: qual zona vale para cada parâmetro ----------
+
+def aplicar_arco_tiete(r, forcar=None):
+    """SP: ZEM no Subsetor Arco Tietê ganha a camada 'ZEM / Arco Tietê' (Res. CTLU 004/2018).
+    forcar: True/False vindo do usuário (--arco-tiete sim/nao) passa por cima da camada."""
+    detectado = r.get("arco_tiete")
+    if forcar is not None:
+        r["arco_tiete"], r["arco_tiete_origem"] = forcar, "informado pelo usuário"
+    elif detectado is None:
+        r["arco_tiete_origem"] = "não verificado"
+        if "ZEM" in r["zonas"]:
+            r.setdefault("avisos", []).append(
+                "Não deu para verificar se o lote está no Subsetor Arco Tietê (camada pde_macroarea_lei_18209). "
+                "Se estiver, o CA máximo da ZEM é 4,0 (Res. CTLU 004/2018): use arco_tiete=sim.")
+    else:
+        r["arco_tiete_origem"] = "camada pde_macroarea_lei_18209 (campos não conferidos)"
+    if r.get("arco_tiete"):
+        zs = []
+        for z in r["zonas"]:
+            zs.append(z)
+            if z == "ZEM":
+                zs.append("ZEM / Arco Tietê")
+        r["zonas"] = zs
+
+
+def _nivel(cidade, zona):
+    """Ordem do geral para o específico: o nível maior prevalece."""
+    if cidade == "sao-paulo":
+        return 1 if " / " in zona else 0
+    if cidade == "manaus":
+        return 1 if zona.startswith("Subsetor") else 0
+    if cidade == "natal":
+        if zona == "Município (geral)":
+            return 0
+        if zona.startswith("Eixo "):
+            return 4
+        if zona.startswith("Bacia "):
+            return 2
+        if zona.startswith("Bairro "):
+            return 3 if " / Bacia " in zona else 1
+    return 0
+
+
+def aplicaveis(cidade, zonas, parametros):
+    """{parametro: valor aplicável ao lote}, com a zona de onde saiu e o que ela substituiu.
+    None quando o lote cai em mais de uma zona base (SP), porque aí não há um valor só."""
+    if not zonas:
+        return {}
+    base_ = [z for z in zonas if _nivel(cidade, z) == 0]
+    if cidade == "sao-paulo" and len(base_) > 1:
+        return None
+    out = {}
+    for z in sorted(zonas, key=lambda z: _nivel(cidade, z)):  # sort estável: mantém a ordem dentro do nível
+        for p in parametros.get(z, []):
+            item = {"valor": p["valor"], "zona": z, "norma_id": p["norma_id"], "dispositivo": p["dispositivo"],
+                    "nota": p["nota"], "conferido": p["conferido"]}
+            ant = out.get(p["parametro"])
+            if ant:
+                item["substitui"] = ant.get("substitui", []) + [{"zona": ant["zona"], "valor": ant["valor"]}]
+            out[p["parametro"]] = item
+    if cidade == "manaus":  # o subsetor não define tudo: o resto vem do setor (conferir se vale)
+        topo = max(_nivel(cidade, z) for z in zonas)
+        for v in out.values():
+            if _nivel(cidade, v["zona"]) < topo:
+                v["herdado"] = True
+    return out
