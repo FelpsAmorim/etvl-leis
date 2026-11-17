@@ -64,15 +64,26 @@ function falsoGeosampa(u) {
   return { features: [z("ZEU")] }; // 2016: tudo ZEU
 }
 
-// Lote inteiro em ZEM, dentro ou fora do Arco Tietê (null: camada fora do ar)
-const geosampaZem = (macro) => (u) => {
-  const camada = params(u).typeNames.replace("geoportal:", "");
+// Lote inteiro em ZEM; macro = sigla da macroárea (null: camada fora do ar). Atributos da sondagem de 17/11/2026.
+const geosampaZem = (macro, { tombado = false } = {}) => (u) => {
+  const { typeNames, CQL_FILTER } = params(u);
+  const camada = typeNames.replace("geoportal:", "");
   if (camada === "lote_cidadao") return falsoGeosampa(u);
   if (camada === "pde_macroarea_lei_18209") {
     if (macro === null) throw new ErroFonte("fora do ar");
-    return { features: [{ properties: { nm_macroarea: macro } }] };
+    return { features: [{ properties: { sg_macroarea: macro, nm_macroarea: "Macroarea " + macro } }] };
   }
-  return { features: [{ properties: { cd_zoneamento_perimetro: "ZEM", tx_zoneamento_perimetro: "ZEM" } }] };
+  if (camada === "patrimonio_cultural_area_envoltoria_CONDEPHAAT")
+    return { features: [{ properties: { nm_area: "A.E PALÁCIO DOS CAMPOS ELÍSEOS_300 metros", tx_resolucao_condephaat: "RES. SC S/N/1977" } }] };
+  if (camada === "perimetro_aiu") return { features: [{ properties: { nm_lei: "AIU Setor Central", cd_numero_lei: "17844/22" } }] };
+  if (camada === "patrimonio_cultural_bem_tombado") {
+    assert.match(CQL_FILTER, /cd_lote='0000'/); // pelo SQL do lote, não por encostar na divisa
+    return { features: tombado ? [{ properties: { nm_area_tombada: "BAIRRO DOS CAMPOS ELÍSEOS", tx_resolucao_conpresp: "RES. 03/18",
+      tx_resolucao_condephaat: "RES. SC 20/13" } }] : [] };
+  }
+  if (camada.startsWith("perimetro_zona") || camada.startsWith("zoneamento_2016"))
+    return { features: [{ properties: { cd_zoneamento_perimetro: "ZEM", tx_zoneamento_perimetro: "ZEM" } }] };
+  return { features: [] };
 };
 
 // ---- Manaus ----
@@ -148,9 +159,15 @@ test("utilitários batem com o Python", () => {
 });
 
 // ---- precedência e Arco Tietê (comparação com os laudos da Legali, 17/11/2026) ----
-test("SP: ZEM no Arco Tietê tem CA máx. 4,0 (Porto Seguro)", async () => {
-  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("MEM - Subsetor Arco Tietê"));
-  assert.equal(r.arco_tiete, true);
+test("SP: lote na MEM pede confirmação do Arco Tietê e fica com CA 2,0", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("MEM"));
+  assert.equal(r.arco_tiete, null);
+  assert.equal(r.aplicaveis.ca_max.valor, 2.0);
+  assert.ok(r.avisos.some((a) => a.includes("MEM") && a.includes("arco_tiete=sim")));
+});
+
+test("SP: ZEM no Arco Tietê confirmado tem CA máx. 4,0 (Porto Seguro)", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2", arco_tiete: "sim" }, geosampaZem("MEM"));
   assert.deepEqual(r.zonas, ["ZEM", "ZEM / Arco Tietê"]);
   assert.equal(r.aplicaveis.ca_max.valor, 4.0);
   assert.deepEqual(r.aplicaveis.ca_max.substitui, [{ zona: "ZEM", valor: 2.0 }]);
@@ -158,19 +175,41 @@ test("SP: ZEM no Arco Tietê tem CA máx. 4,0 (Porto Seguro)", async () => {
   assert.ok(r.regras.some((g) => g.norma_id === "RES_CTLU_004_2018"));
 });
 
-test("SP: fora do Arco Tietê o CA máx. da ZEM fica 2,0", async () => {
-  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("Macroárea de Urbanização Consolidada"));
+test("SP: fora da MEM não é Arco Tietê", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("MQU"));
   assert.equal(r.arco_tiete, false);
   assert.equal(r.aplicaveis.ca_max.valor, 2.0);
+  assert.ok(!(r.avisos || []).some((a) => a.includes("arco_tiete")));
 });
 
-test("SP: camada fora do ar avisa, e arco_tiete=sim resolve", async () => {
-  let r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem(null));
+test("SP: camada de macroáreas fora do ar avisa", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem(null));
   assert.equal(r.arco_tiete, null);
   assert.ok(r.avisos.some((a) => a.includes("arco_tiete=sim")));
-  r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2", arco_tiete: "sim" }, geosampaZem(null));
-  assert.equal(r.aplicaveis.ca_max.valor, 4.0);
-  assert.equal(r.arco_tiete_origem, "informado pelo usuário");
+});
+
+test("SP: sobreposições de patrimônio, AIU e tombamento", async () => {
+  const r = await buscar(db, { cidade: "sao-paulo", sql: "008.018.0069-2" }, geosampaZem("MEM", { tombado: true }));
+  assert.deepEqual(r.sobreposicoes.map((x) => x.tipo), ["envoltoria_condephaat", "aiu", "tombado"]);
+  assert.ok(r.avisos.some((a) => a.startsWith("A.E PALÁCIO DOS CAMPOS ELÍSEOS")));
+  assert.ok(r.avisos.some((a) => a.includes("BAIRRO DOS CAMPOS ELÍSEOS") && a.includes("RES. SC 20/13")));
+});
+
+test("Manaus: 'Sete de Setembro' vira '7 de Setembro' no geocodificador", async () => {
+  const pedidos = [];
+  const get = (u) => {
+    if (u.includes("findAddressCandidates")) {
+      const t = params(u).SingleLine;
+      pedidos.push(t);
+      return t.includes("7 DE SETEMBRO")
+        ? { candidates: [{ address: "895 AVENIDA 7 DE SETEMBRO, CENTRO, MANAUS", score: 90.22, location: { x: -60.0223, y: -3.1346 } }] }
+        : { candidates: [] };
+    }
+    return falsoArcgis(u);
+  };
+  const r = await buscar(db, { cidade: "manaus", endereco: "Avenida Sete de Setembro, 895" }, get);
+  assert.deepEqual(pedidos, ["Avenida Sete de Setembro, 895", "AVENIDA 7 DE SETEMBRO, 895"]);
+  assert.equal(r.endereco_encontrado, "895 AVENIDA 7 DE SETEMBRO, CENTRO, MANAUS");
 });
 
 test("SP: lote em duas zonas não mistura parâmetros", async () => {

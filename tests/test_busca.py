@@ -149,7 +149,8 @@ class TestArcoTiete(unittest.TestCase):
         self.tmp.cleanup()
 
     @staticmethod
-    def geosampa(macroarea):
+    def geosampa(macro, tombado=False):
+        """macro: sigla da macroárea (None: camada fora do ar). Atributos copiados da sondagem de 17/11/2026."""
         quad = {"type": "Polygon", "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]}
 
         def get(camada, cql, campos=None, limite=20):
@@ -159,30 +160,69 @@ class TestArcoTiete(unittest.TestCase):
             if camada.startswith("perimetro_zona") or camada.startswith("zoneamento_2016"):
                 return [{"properties": {"cd_zoneamento_perimetro": "ZEM", "tx_zoneamento_perimetro": "ZEM"}}]
             if camada == "pde_macroarea_lei_18209":
-                if macroarea is None:
+                if macro is None:
                     raise busca.ErroFonte("camada fora do ar")
-                return [{"properties": {"nm_macroarea": macroarea}}]
+                return [{"properties": {"sg_macroarea": macro, "nm_macroarea": "Macroarea " + macro}}]
+            if camada == "patrimonio_cultural_area_envoltoria_CONDEPHAAT":
+                return [{"properties": {"nm_area": "A.E PALÁCIO DOS CAMPOS ELÍSEOS_300 metros",
+                                        "tx_resolucao_condephaat": "RES. SC S/N/1977"}}]
+            if camada == "perimetro_aiu":
+                return [{"properties": {"nm_lei": "AIU Setor Central", "cd_numero_lei": "17844/22"}}]
+            if camada == "patrimonio_cultural_bem_tombado":
+                assert "cd_lote='0069'" in cql  # o tombamento vai pelo SQL do lote, não por encostar
+                return [{"properties": {"nm_area_tombada": "BAIRRO DOS CAMPOS ELÍSEOS",
+                                        "tx_resolucao_conpresp": "RES. 03/18 - ex-officio",
+                                        "tx_resolucao_condephaat": "RES. SC 20/13"}}] if tombado else []
             return []
         return get
 
-    def test_dentro_do_arco_tiete(self):
-        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2",
-                         get=self.geosampa("MEM - Setor Orla Ferroviária e Fluvial - Subsetor Arco Tietê"))
-        self.assertTrue(r["arco_tiete"])
+    def test_na_mem_pede_confirmacao_do_subsetor(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa("MEM"))
+        self.assertIsNone(r["arco_tiete"])
+        self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 2.0)
+        self.assertTrue(any("arco_tiete=sim" in a and "MEM" in a for a in r["avisos"]))
+
+    def test_na_mem_com_confirmacao(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa("MEM"), arco_tiete=True)
         self.assertEqual(r["zonas"], ["ZEM", "ZEM / Arco Tietê"])
         self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 4.0)
         self.assertEqual(r["aplicaveis"]["ca_max"]["substitui"], [{"zona": "ZEM", "valor": 2.0}])
         self.assertEqual(r["aplicaveis"]["to_acima_500"]["valor"], 0.7)
+        self.assertEqual(r["arco_tiete_origem"], "informado pelo usuário")
 
-    def test_fora_do_arco_tiete(self):
-        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa("Macroárea de Urbanização Consolidada"))
+    def test_fora_da_mem_nao_e_arco_tiete(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa("MQU"))
         self.assertFalse(r["arco_tiete"])
         self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 2.0)
+        self.assertFalse(any("arco_tiete" in a for a in r.get("avisos", [])))
 
-    def test_camada_fora_do_ar_avisa_e_aceita_o_usuario(self):
+    def test_camada_fora_do_ar_avisa(self):
         r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa(None))
         self.assertIsNone(r["arco_tiete"])
         self.assertTrue(any("arco_tiete=sim" in a for a in r["avisos"]))
-        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa(None), arco_tiete=True)
-        self.assertEqual(r["aplicaveis"]["ca_max"]["valor"], 4.0)
-        self.assertEqual(r["arco_tiete_origem"], "informado pelo usuário")
+
+    def test_sobreposicoes(self):
+        r = busca.buscar(self.con, "sao-paulo", sql="008.018.0069-2", get=self.geosampa("MEM", tombado=True))
+        tipos = [s["tipo"] for s in r["sobreposicoes"]]
+        self.assertEqual(tipos, ["envoltoria_condephaat", "aiu", "tombado"])
+        self.assertTrue(any(a.startswith("A.E PALÁCIO DOS CAMPOS ELÍSEOS") for a in r["avisos"]))
+        self.assertTrue(any("BAIRRO DOS CAMPOS ELÍSEOS" in a and "RES. SC 20/13" in a for a in r["avisos"]))
+
+
+class TestManausEndereco(unittest.TestCase):
+    def test_numero_por_extenso_vira_algarismo(self):
+        # sondagem 17/11/2026: 'Sete de Setembro' não acha; 'AV. 7 DE SETEMBRO, 895' acha com score 90
+        pedidos = []
+
+        def get(url, params):
+            pedidos.append(params["SingleLine"])
+            if "7 DE SETEMBRO" in params["SingleLine"]:
+                return {"candidates": [{"address": "895 AVENIDA 7 DE SETEMBRO, CENTRO, MANAUS", "score": 90.22,
+                                        "location": {"x": -60.0223, "y": -3.1346}}]}
+            return {"candidates": []}
+        lat, lon, end = busca.geocodificar_manaus("Avenida Sete de Setembro, 895", get)
+        self.assertEqual(pedidos, ["Avenida Sete de Setembro, 895", "AVENIDA 7 DE SETEMBRO, 895"])
+        self.assertAlmostEqual(lat, -3.1346)
+
+    def test_sem_data_no_nome_nao_inventa_variante(self):
+        self.assertEqual(busca.variantes_endereco("Av Djalma Batista, 1661"), ["Av Djalma Batista, 1661"])

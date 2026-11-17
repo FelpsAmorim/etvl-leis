@@ -2,7 +2,8 @@
 // Mesma lógica de evtl_leis/busca.py e evtl_leis/lote.py (a referência é o Python; mantenha os dois iguais).
 //
 // Limite do plano free: 50 subrequests por chamada. Pior caso aqui: SP com lote em várias zonas
-// (1 lote + 1 zona + até 25 amostras + 1 de 2016 + 1 Arco Tietê = 29); Natal com coordenada = 18; Manaus = 6.
+// (1 lote + 1 zona + até 25 amostras + 1 de 2016 + 1 macroárea + 8 sobreposições = 37); Natal com coordenada = 18;
+// Manaus = até 7 (o endereço pode ir em duas tentativas).
 
 const UA = { "User-Agent": "evtl-leis/0.2 (+consulta de legislacao urbanistica)" };
 
@@ -159,35 +160,107 @@ async function zonasEm(get, alvo, versao, comFracao = true) {
     .sort((a, b) => b.fracao - a.fracao);
 }
 
-// Subsetor Arco Tietê da MEM (SISZON: "MA 0009 - L 18.209/2024"). Campos da camada não conferidos:
-// procura "Arco Tietê" em qualquer campo de texto. null = a camada não respondeu.
+// Macroárea do PDE (Mapa 2, Lei 18.209/2024). O GeoSampa não publica os subsetores da MEM (conferido em
+// 17/11/2026): fora da MEM o lote não está no Arco Tietê; dentro, quem confirma é o usuário. Igual a lote.py.
 const CAMADA_MACROAREA = "pde_macroarea_lei_18209";
+const geoCql = (alvo) => (Array.isArray(alvo) ? ponto(...alvo) : wkt(alvo));
 
-async function arcoTiete(get, alvo) {
-  const geo = Array.isArray(alvo) ? ponto(...alvo) : wkt(alvo);
-  let fs;
+async function macroarea(get, alvo) {
   try {
-    fs = await wfs(get, CAMADA_MACROAREA, `INTERSECTS(ge_poligono, ${geo})`);
+    const fs = await wfs(get, CAMADA_MACROAREA, `INTERSECTS(ge_poligono, ${geoCql(alvo)})`, "sg_macroarea,nm_macroarea");
+    return fs.map((f) => ({ sigla: (f.properties.sg_macroarea || "").trim(), nome: f.properties.nm_macroarea ?? null }));
   } catch (e) {
     if (e instanceof ErroFonte) return null;
     throw e;
   }
-  return fs.some((f) => Object.values(f.properties || {}).some((v) => typeof v === "string" && semAcento(v).includes("ARCO TIETE")));
+}
+
+const SOBREPOSICOES = [
+  ["envoltoria_condephaat", "patrimonio_cultural_area_envoltoria_CONDEPHAAT", "nm_area", "tx_resolucao_condephaat",
+    "Área envoltória CONDEPHAAT: projeto depende de anuência prévia (gabarito, volumetria, materiais)."],
+  ["envoltoria_conpresp", "patrimonio_cultural_area_envoltoria_CONPRESP", "nm_area", "tx_resolucao_conpresp",
+    "Área envoltória CONPRESP: projeto depende de anuência prévia."],
+  ["envoltoria_iphan", "patrimonio_cultural_area_envoltoria_IPHAN", "nm_area", "tx_resolucao_iphan",
+    "Área envoltória IPHAN: projeto depende de anuência prévia."],
+  ["operacao_urbana", "operacao_urbana", "nm_operacao_urbana", "tx_lei_operacao_urbana",
+    "Operação urbana: o potencial adicional segue a lei da operação (ex.: CEPAC), não a outorga comum."],
+  ["subsetor_operacao_urbana", "subsetor_operacao_urbana", null, null, null],
+  ["aiu", "perimetro_aiu", "nm_lei", "cd_numero_lei", "Área de Intervenção Urbana: conferir os parâmetros e incentivos da lei da AIU."],
+  ["requalifica_centro", "requalifica_centro_perimetro_geral", "nm_perimetro", "dc_lei",
+    "Perímetro do Requalifica Centro (Lei 17.577/2021): regras próprias para reforma e mudança de uso."],
+];
+
+function textoDe(p, campo) {
+  if (campo && p[campo]) return String(p[campo]).trim();
+  for (const [k, v] of Object.entries(p)) if (typeof v === "string" && /^(nm_|tx_|sg_)/.test(k)) return v.trim();
+  return null;
+}
+
+async function sobreposicoes(get, alvo, partes) {
+  const geo = geoCql(alvo);
+  const umaCamada = async ([tipo, camada, campoNome, campoNorma, aviso]) => {
+    try {
+      const fs = await wfs(get, camada, `INTERSECTS(ge_poligono, ${geo})`);
+      return fs.map((f) => ({ tipo, camada, nome: textoDe(f.properties || {}, campoNome),
+        norma: campoNorma ? f.properties?.[campoNorma] ?? null : null, aviso }));
+    } catch (e) {
+      if (e instanceof ErroFonte) return [{ tipo, camada, erro: e.message.slice(0, 120) }];
+      throw e;
+    }
+  };
+  const tombado = async () => {
+    if (!partes) return [];
+    const [setor, quadra, lt] = partes;
+    try {
+      const fs = await wfs(get, "patrimonio_cultural_bem_tombado",
+        `cd_setor_fiscal='${setor}' AND cd_quadra_fiscal='${quadra}' AND cd_lote='${lt}'`);
+      return fs.map((f) => {
+        const p = f.properties || {};
+        const norma = [p.tx_resolucao_conpresp, p.tx_resolucao_condephaat].filter((x) => x && x !== "não consta").join(" | ");
+        return { tipo: "tombado", camada: "patrimonio_cultural_bem_tombado", nome: p.nm_area_tombada ?? null, norma: norma || null,
+          aviso: "Bem tombado: qualquer intervenção depende de anuência prévia; demolição em regra vedada." };
+      });
+    } catch (e) {
+      if (e instanceof ErroFonte) return [{ tipo: "tombado", camada: "patrimonio_cultural_bem_tombado", erro: e.message.slice(0, 120) }];
+      throw e;
+    }
+  };
+  const res = await Promise.all([...SOBREPOSICOES.map(umaCamada), tombado()]);
+  return res.flat();
 }
 
 export function aplicarArcoTiete(r, forcar) {
   if (forcar != null) {
     r.arco_tiete = forcar;
     r.arco_tiete_origem = "informado pelo usuário";
-  } else if (r.arco_tiete == null) {
-    r.arco_tiete_origem = "não verificado";
+  } else if (r.macroarea == null) {
+    r.arco_tiete_origem = "não verificado (camada de macroáreas não respondeu)";
     if (r.zonas.includes("ZEM"))
-      (r.avisos ??= []).push("Não deu para verificar se o lote está no Subsetor Arco Tietê (camada pde_macroarea_lei_18209). " +
-        "Se estiver, o CA máximo da ZEM é 4,0 (Res. CTLU 004/2018): use arco_tiete=sim.");
+      (r.avisos ??= []).push("Não deu para ver a macroárea do lote. Se ele estiver no Subsetor Arco Tietê da MEM, o CA máximo " +
+        "da ZEM é 4,0 (Res. CTLU 004/2018): use arco_tiete=sim.");
+  } else if (r.arco_tiete == null) {
+    r.arco_tiete_origem = "lote na MEM; o subsetor não tem camada aberta no GeoSampa";
+    if (r.zonas.includes("ZEM"))
+      (r.avisos ??= []).push("Lote em ZEM na Macroárea de Estruturação Metropolitana (MEM). Se estiver no Subsetor Arco Tietê " +
+        "(SISZON, camada MA), o CA máximo é 4,0 pela Res. CTLU 004/2018: confirme e use arco_tiete=sim. " +
+        "Sem a confirmação, a busca usa o Quadro 3 (CA 2,0).");
   } else {
-    r.arco_tiete_origem = "camada pde_macroarea_lei_18209 (campos não conferidos)";
+    r.arco_tiete_origem = "fora da MEM (camada pde_macroarea_lei_18209)";
   }
   if (r.arco_tiete) r.zonas = r.zonas.flatMap((z) => (z === "ZEM" ? ["ZEM", "ZEM / Arco Tietê"] : [z]));
+}
+
+export function avisosDeSobreposicao(r) {
+  const vistos = new Set();
+  for (const s of r.sobreposicoes || []) {
+    const linha = s.erro
+      ? `Camada ${s.camada} não respondeu: confira essa sobreposição no SISZON.`
+      : `${s.nome || s.tipo}${s.norma ? ` (${s.norma})` : ""}${s.aviso ? `: ${s.aviso}` : ""}`;
+    if (!vistos.has(linha)) {
+      vistos.add(linha);
+      (r.avisos ??= []).push(linha);
+    }
+  }
 }
 
 export async function saoPaulo({ sql, endereco, numero, lat, lon }, get = getJson) {
@@ -227,8 +300,12 @@ export async function saoPaulo({ sql, endereco, numero, lat, lon }, get = getJso
     throw new ErroFonte("Lote não encontrado no GeoSampa (lote_cidadao). Unidades de condomínio: use o endereço ou a coordenada do terreno.");
   }
   // 2016 só lista as zonas (sem fração) para caber no limite de subrequests
-  const [z24, z16, arco] = await Promise.all([zonasEm(get, alvo, 2024), zonasEm(get, alvo, 2016, false), arcoTiete(get, alvo)]);
-  res.arco_tiete = arco;
+  const partes = lotes.length ? [lotes[0].properties.cd_setor_fiscal, lotes[0].properties.cd_quadra_fiscal, lotes[0].properties.cd_lote] : null;
+  const [z24, z16, macro, sobre] = await Promise.all([
+    zonasEm(get, alvo, 2024), zonasEm(get, alvo, 2016, false), macroarea(get, alvo), sobreposicoes(get, alvo, partes)]);
+  res.macroarea = macro;
+  res.arco_tiete = macro == null || macro.some((m) => m.sigla === "MEM") ? null : false;
+  res.sobreposicoes = sobre;
   for (const [v, zs] of [[2024, z24], [2016, z16]]) {
     const cfg = CAMADAS_ZONA[v];
     res[`zonas_${v}`] = zs;
@@ -263,14 +340,33 @@ async function maoPorPonto(get, camada, lon, lat, campos, distancia) {
   return (d.features || []).map((f) => f.attributes);
 }
 
+const EXTENSO = { UM: 1, DOIS: 2, TRES: 3, QUATRO: 4, CINCO: 5, SEIS: 6, SETE: 7, OITO: 8, NOVE: 9, DEZ: 10, ONZE: 11,
+  DOZE: 12, TREZE: 13, CATORZE: 14, QUATORZE: 14, QUINZE: 15, DEZESSEIS: 16, DEZESSETE: 17, DEZOITO: 18, DEZENOVE: 19,
+  VINTE: 20, TRINTA: 30, PRIMEIRO: 1 };
+const MESES = new Set(["JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO",
+  "OUTUBRO", "NOVEMBRO", "DEZEMBRO"]);
+
+// 'Avenida Sete de Setembro, 895' -> também 'AVENIDA 7 DE SETEMBRO, 895' (o geocodificador de Manaus usa algarismos)
+export function variantesEndereco(endereco) {
+  const p = semAcento(endereco).replace(/,/g, " , ").split(/\s+/).filter(Boolean);
+  let mudou = false;
+  for (let i = 0; i < p.length - 2; i++)
+    if (EXTENSO[p[i]] && p[i + 1] === "DE" && MESES.has(p[i + 2])) { p[i] = String(EXTENSO[p[i]]); mudou = true; }
+  return mudou ? [endereco, p.join(" ").replace(/ , /g, ", ")] : [endereco];
+}
+
 const titulo = (s) => s.toLowerCase().replace(/(^|\s)(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
 
 export async function manaus({ lat, lon, cgl, endereco }, get = getJson) {
   const res = { cidade: "Manaus", entrada: limpo({ lat, lon, cgl, endereco }) };
   if (endereco) {
-    const d = await arcgis(get, `${GEOCODE_MAO}/findAddressCandidates`, { SingleLine: endereco, outSR: 4326, maxLocations: 1 }, "Manaus");
-    const c = (d.candidates || [])[0];
-    if (!c || (c.score || 0) < 80) throw new ErroFonte(`Endereço não encontrado no geocodificador de Manaus: ${endereco}`);
+    let c = null;
+    for (const tentativa of variantesEndereco(endereco)) {
+      const d = await arcgis(get, `${GEOCODE_MAO}/findAddressCandidates`, { SingleLine: tentativa, outSR: 4326, maxLocations: 1 }, "Manaus");
+      const x = (d.candidates || [])[0];
+      if (x && (x.score || 0) >= 80) { c = x; break; }
+    }
+    if (!c) throw new ErroFonte(`Endereço não encontrado no geocodificador de Manaus: ${endereco} (dica: números em algarismos, como 'Av. 7 de Setembro, 895')`);
     [lat, lon] = [c.location.y, c.location.x];
     res.endereco_encontrado = c.address;
   }
@@ -491,6 +587,7 @@ export async function buscar(db, p, get = getJson) {
     if (a && !["sim", "nao", "não"].includes(a)) throw new ErroEntrada("arco_tiete deve ser sim ou nao");
     r = await saoPaulo({ sql: g("sql"), endereco: g("endereco"), numero: g("numero"), lat, lon }, get);
     aplicarArcoTiete(r, a ? a === "sim" : null);
+    avisosDeSobreposicao(r);
   } else if (slug === "manaus") {
     r = await manaus({ lat, lon, cgl: g("cgl"), endereco: g("endereco") }, get);
   } else {

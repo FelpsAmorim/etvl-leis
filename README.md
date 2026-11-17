@@ -49,7 +49,11 @@ Lote em mais de uma zona (SP): a busca estima a fração de cada zona por amostr
 
 Lote de SP em mais de uma zona: `aplicaveis` vem vazio (`null`) e a resposta avisa, porque não existe um valor só.
 
-**Arco Tietê (SP).** A busca consulta a camada `pde_macroarea_lei_18209` do GeoSampa. Se ela não responder, a resposta avisa; `--arco-tiete sim|nao` (ou `arco_tiete=` na API) decide na mão.
+**Arco Tietê (SP).** O GeoSampa não publica os subsetores da MEM. A busca vê a macroárea (`pde_macroarea_lei_18209`): fora da MEM, o lote não está no Arco Tietê; dentro, a resposta avisa e `--arco-tiete sim|nao` (ou `arco_tiete=` na API) decide.
+
+**Sobreposições (SP).** A busca lista, em `sobreposicoes` e nos avisos, o que o GeoSampa publica sobre o lote: área envoltória (CONDEPHAAT, CONPRESP, IPHAN), bem tombado (pelo SQL do próprio lote), operação urbana, AIU e Requalifica Centro. Elas não mudam os números do Quadro 3, mas condicionam o projeto. A ZEPEC ainda não tem camada.
+
+**Manaus.** O geocodificador da prefeitura escreve datas de rua em algarismos ("Avenida 7 de Setembro"); a busca tenta as duas formas.
 
 `--data AAAA-MM-DD` (em `buscar` e `consultar`) devolve os parâmetros na versão que valia naquela data. Use a data do laudo ao comparar com os EVTLs do gabarito: um laudo de 2022 em SP seguiu a Lei 16.402 antes das mudanças de 2024. As regras textuais ainda não têm data de vigência; a resposta avisa.
 
